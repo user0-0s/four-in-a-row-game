@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Four in a Row</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #e74c3c;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --board: #2980b9;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--dark), #34495e);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--light);
+        }
+        
+        .container {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--light);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .game-info {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .controls {
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        #reset-btn {
+            background-color: var(--secondary);
+        }
+        
+        #reset-btn:hover {
+            background-color: #c0392b;
+        }
+        
+        .board-container {
+            position: relative;
+            padding: 10px;
+            background-color: var(--board);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .board {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            background-color: var(--board);
+            padding: 8px;
+            border-radius: 8px;
+            position: relative;
+        }
+        
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .cell {
+            width: 60px;
+            height: 60px;
+            background-color: var(--light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .column-overlay {
+            position: absolute;
+            top: 0;
+            width: 76px;
+            height: 100%;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .preview-disc {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            position: absolute;
+            top: -80px;
+            opacity: 0.5;
+            display: none;
+        }
+        
+        .disc {
+            width: 90%;
+            height: 90%;
+            border-radius: 50%;
+            position: absolute;
+            opacity: 0;
+            transition: transform 0.5s ease-in-out, opacity 0.2s;
+        }
+        
+        .disc.player1 {
+            background: radial-gradient(circle at 30% 30%, #ff9a9e, var(--primary));
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .disc.player2 {
+            background: radial-gradient(circle at 30% 30%, #ffbf96, var(--secondary));
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .winning-cell {
+            animation: pulse 1s infinite alternate;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+            }
+            100% {
+                transform: scale(1.05);
+                box-shadow: 0 0 20px 10px rgba(255, 255, 255, 0.5);
+            }
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .modal-content {
+            background: var(--light);
+            color: var(--dark);
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
+            max-width: 90%;
+            width: 400px;
+        }
+        
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+        
+        .modal h2 {
+            margin-top: 0;
+            color: var(--dark);
+        }
+        
+        .modal p {
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        .stats-item {
+            background-color: rgba(0, 0, 0, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+        }
+        
+        @media (max-width: 600px) {
+            .cell {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .column-overlay {
+                width: 56px;
+            }
+            
+            .preview-disc {
+                width: 40px;
+                height: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Four in a Row</h1>
+        <div class="game-info">
+            <p id="turn-info">Player 1's turn</p>
+        </div>
+        <div class="stats">
+            <div class="stats-item" id="player1-wins">Player 1: 0</div>
+            <div class="stats-item" id="player2-wins">Player 2: 0</div>
+            <div class="stats-item" id="draws">Draws: 0</div>
+        </div>
+        <div class="controls">
+            <button id="reset-btn">New Game</button>
+            <button id="undo-btn">Undo Move</button>
+        </div>
+    </div>
+    
+    <div class="board-container">
+        <div class="board" id="board"></div>
+    </div>
+    
+    <div class="modal" id="win-modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Player 1 Wins!</h2>
+            <p id="modal-message">Congratulations!</p>
+            <button id="play-again-btn">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game state
+            const ROWS = 6;
+            const COLS = 7;
+            const board = Array(ROWS).fill().map(() => Array(COLS).fill(0));
+            let currentPlayer = 1;
+            let gameActive = true;
+            let moveHistory = [];
+            let stats = {
+                player1Wins: 0,
+                player2Wins: 0,
+                draws: 0
+            };
+            
+            // Load stats from local storage
+            loadStats();
+            
+            // DOM elements
+            const boardElement = document.getElementById('board');
+            const turnInfo = document.getElementById('turn-info');
+            const resetBtn = document.getElementById('reset-btn');
+            const undoBtn = document.getElementById('undo-btn');
+            const modal = document.getElementById('win-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalMessage = document.getElementById('modal-message');
+            const playAgainBtn = document.getElementById('play-again-btn');
+            const player1WinsElem = document.getElementById('player1-wins');
+            const player2WinsElem = document.getElementById('player2-wins');
+            const drawsElem = document.getElementById('draws');
+            
+            // Create the game board
+            function createBoard() {
+                // Clear the board
+                boardElement.innerHTML = '';
+                
+                // Create column overlays for dropping discs
+                for (let col = 0; col < COLS; col++) {
+                    const columnOverlay = document.createElement('div');
+                    columnOverlay.className = 'column-overlay';
+                    columnOverlay.style.left = `${col * 76}px`;
+                    columnOverlay.dataset.col = col;
+                    
+                    // Preview disc
+                    const previewDisc = document.createElement('div');
+                    previewDisc.className = 'preview-disc';
+                    previewDisc.classList.add(`player${currentPlayer}`);
+                    columnOverlay.appendChild(previewDisc);
+                    
+                    columnOverlay.addEventListener('mouseover', () => {
+                        if (gameActive) {
+                            previewDisc.style.display = 'block';
+                            previewDisc.className = 'preview-disc';
+                            previewDisc.classList.add(`player${currentPlayer}`);
+                        }
+                    });
+                    
+                    columnOverlay.addEventListener('mouseout', () => {
+                        previewDisc.style.display = 'none';
+                    });
+                    
+                    columnOverlay.addEventListener('click', () => {
+                        if (gameActive) {
+                            dropDisc(col);
+                        }
+                    });
+                    
+                    boardElement.appendChild(columnOverlay);
+                }
+                
+                // Create game cells
+                for (let col = 0; col < COLS; col++) {
+                    const column = document.createElement('div');
+                    column.className = 'column';
+                    
+                    for (let row = 0; row < ROWS; row++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+                        
+                        // Create empty disc slot
+                        const disc = document.createElement('div');
+                        disc.className = 'disc';
+                        disc.dataset.row = row;
+                        disc.dataset.col = col;
+                        
+                        cell.appendChild(disc);
+                        column.appendChild(cell);
+                    }
+                    
+                    boardElement.appendChild(column);
+                }
+            }
+            
+            // Drop a disc in the specified column
+            function dropDisc(col) {
+                // Find the lowest empty row in the column
+                let row = -1;
+                for (let r = ROWS - 1; r >= 0; r--) {
+                    if (board[r][col] === 0) {
+                        row = r;
+                        break;
+                    }
+                }
+                
+                // If column is full, do nothing
+                if (row === -1) return;
+                
+                // Update the board array
+                board[row][col] = currentPlayer;
+                
+                // Find the disc element to animate
+                const disc = document.querySelector(`.disc[data-row="${row}"][data-col="${col}"]`);
+                
+                // Set the disc color based on the current player
+                disc.classList.add(`player${currentPlayer}`);
+                
+                // Calculate the start position (top of the board)
+                const startTop = -((row + 1) * 68);
+                const finalTop = 0;
+                
+                // Set the initial position
+                disc.style.transform = `translateY(${startTop}px)`;
+                disc.style.opacity = '1';
+                
+                // Add the move to history
+                moveHistory.push({ row, col, player: currentPlayer });
+                
+                // After a short delay, animate the disc falling
+                setTimeout(() => {
+                    disc.style.transform = `translateY(${finalTop}px)`;
+                    
+                    // Add a bouncing effect after the disc lands
+                    setTimeout(() => {
+                        disc.style.transform = 'translateY(-10px)';
+                        setTimeout(() => {
+                            disc.style.transform = 'translateY(0)';
+                            
+                            // Check for win or draw after the animation completes
+                            const isWin = checkWin(row, col, currentPlayer);
+                            const isDraw = checkDraw();
+                            
+                            if (isWin) {
+                                gameActive = false;
+                                highlightWinningCells(isWin);
+                                updateStats(`player${currentPlayer}Wins`);
+                                setTimeout(() => {
+                                    modalTitle.textContent = `Player ${currentPlayer} Wins!`;
+                                    modalMessage.textContent = 'Congratulations!';
+                                    modal.classList.add('active');
+                                }, 600);
+                            } else if (isDraw) {
+                                gameActive = false;
+                                updateStats('draws');
+                                setTimeout(() => {
+                                    modalTitle.textContent = 'It\'s a Draw!';
+                                    modalMessage.textContent = 'No more moves available.';
+                                    modal.classList.add('active');
+                                }, 600);
+                            } else {
+                                // Switch players
+                                currentPlayer = currentPlayer === 1 ? 2 : 1;
+                                updateTurnInfo();
+                            }
+                        }, 100);
+                    }, 500);
+                }, 50);
+            }
+            
+            // Check if the current move results in a win
+            function checkWin(row, col, player) {
+                // Arrays to store the winning cells
+                const winningCells = [];
+                
+                // Check horizontal
+                let count = 0;
+                let tempWinningCells = [];
+                for (let c = 0; c < COLS; c++) {
+                    if (board[row][c] === player) {
+                        count++;
+                        tempWinningCells.push({ row, col: c });
+                        if (count >= 4) {
+                            winningCells.push(...tempWinningCells.slice(-4));
+                            return winningCells;
+                        }
+                    } else {
+                        count = 0;
+                        tempWinningCells = [];
+                    }
+                }
+                
+                // Check vertical
+                count = 0;
+                tempWinningCells = [];
+                for (let r = 0; r < ROWS; r++) {
+                    if (board[r][col] === player) {
+                        count++;
+                        tempWinningCells.push({ row: r, col });
+                        if (count >= 4) {
+                            winningCells.push(...tempWinningCells.slice(-4));
+                            return winningCells;
+                        }
+                    } else {
+                        count = 0;
+                        tempWinningCells = [];
+                    }
+                }
+                
+                // Check diagonal (bottom-left to top-right)
+                count = 0;
+                tempWinningCells = [];
+                let startRow = row + Math.min(col, row);
+                let startCol = col - Math.min(col, row);
+                while (startRow >= 0 && startCol < COLS) {
+                    if (startRow < ROWS) {
+                        if (board[startRow][startCol] === player) {
+                            count++;
+                            tempWinningCells.push({ row: startRow, col: startCol });
+                            if (count >= 4) {
+                                winningCells.push(...tempWinningCells.slice(-4));
+                                return winningCells;
+                            }
+                        } else {
+                            count = 0;
+                            tempWinningCells = [];
+                        }
+                    }
+                    startRow--;
+                    startCol++;
+                }
+                
+                // Check diagonal (top-left to bottom-right)
+                count = 0;
+                tempWinningCells = [];
+                startRow = row - Math.min(col, ROWS - 1 - row);
+                startCol = col - Math.min(col, ROWS - 1 - row);
+                while (startRow < ROWS && startCol < COLS) {
+                    if (startRow >= 0) {
+                        if (board[startRow][startCol] === player) {
+                            count++;
+                            tempWinningCells.push({ row: startRow, col: startCol });
+                            if (count >= 4) {
+                                winningCells.push(...tempWinningCells.slice(-4));
+                                return winningCells;
+                            }
+                        } else {
+                            count = 0;
+                            tempWinningCells = [];
+                        }
+                    }
+                    startRow++;
+                    startCol++;
+                }
+                
+                return false;
+            }
+            
+            // Check if the game is a draw
+            function checkDraw() {
+                for (let c = 0; c < COLS; c++) {
+                    if (board[0][c] === 0) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            
+            // Highlight the winning cells
+            function highlightWinningCells(cells) {
+                cells.forEach(({ row, col }) => {
+                    const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+                    cell.classList.add('winning-cell');
+                });
+            }
+            
+            // Update the turn information
+            function updateTurnInfo() {
+                turnInfo.textContent = `Player ${currentPlayer}'s turn`;
+                
+                // Update preview discs
+                document.querySelectorAll('.preview-disc').forEach(disc => {
+                    disc.className = 'preview-disc';
+                    disc.classList.add(`player${currentPlayer}`);
+                });
+            }
+            
+            // Update stats
+            function updateStats(stat) {
+                stats[stat]++;
+                saveStats();
+                updateStatsDisplay();
+            }
+            
+            // Update stats display
+            function updateStatsDisplay() {
+                player1WinsElem.textContent = `Player 1: ${stats.player1Wins}`;
+                player2WinsElem.textContent = `Player 2: ${stats.player2Wins}`;
+                drawsElem.textContent = `Draws: ${stats.draws}`;
+            }
+            
+            // Save stats to local storage
+            function saveStats() {
+                localStorage.setItem('fourInARowStats', JSON.stringify(stats));
+            }
+            
+            // Load stats from local storage
+            function loadStats() {
+                const savedStats = localStorage.getItem('fourInARowStats');
+                if (savedStats) {
+                    stats = JSON.parse(savedStats);
+                    updateStatsDisplay();
+                }
+            }
+            
+            // Reset the game
+            function resetGame() {
+                // Reset the board array
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        board[r][c] = 0;
+                    }
+                }
+                
+                // Reset game state
+                currentPlayer = 1;
+                gameActive = true;
+                moveHistory = [];
+                
+                // Reset UI
+                document.querySelectorAll('.disc').forEach(disc => {
+                    disc.className = 'disc';
+                    disc.style.opacity = '0';
+                    disc.style.transform = 'translateY(0)';
+                });
+                
+                document.querySelectorAll('.cell').forEach(cell => {
+                    cell.classList.remove('winning-cell');
+                });
+                
+                updateTurnInfo();
+                modal.classList.remove('active');
+            }
+            
+            // Undo the last move
+            function undoMove() {
+                if (moveHistory.length === 0 || !gameActive) return;
+                
+                const lastMove = moveHistory.pop();
+                const { row, col } = lastMove;
+                
+                // Update the board array
+                board[row][col] = 0;
+                
+                // Update the UI
+                const disc = document.querySelector(`.disc[data-row="${row}"][data-col="${col}"]`);
+                disc.className = 'disc';
+                disc.style.opacity = '0';
+                
+                // Switch back to the previous player
+                currentPlayer = currentPlayer === 1 ? 2 : 1;
+                updateTurnInfo();
+            }
+            
+            // Event listeners
+            resetBtn.addEventListener('click', resetGame);
+            undoBtn.addEventListener('click', undoMove);
+            playAgainBtn.addEventListener('click', resetGame);
+            
+            // Initialize the game
+            createBoard();
+            updateTurnInfo();
+        });
+    </script>
+</body>
+</html>
