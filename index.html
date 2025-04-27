@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Four in a Row</title>
+    <title>Four in a Row - Enhanced</title>
     <style>
         :root {
             --primary: #3498db;
@@ -11,19 +11,33 @@
             --dark: #2c3e50;
             --light: #ecf0f1;
             --board: #2980b9;
+            --player1: #3498db;
+            --player2: #e74c3c;
         }
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, var(--dark), #34495e);
             margin: 0;
-            padding: 0;
+            padding: 20px;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             color: var(--light);
+            transition: background 0.5s ease;
+        }
+        
+        .dark-mode {
+            --primary: #bb86fc;
+            --secondary: #03dac6;
+            --dark: #121212;
+            --light: #e1e1e1;
+            --board: #1f1f1f;
+            --player1: #bb86fc;
+            --player2: #03dac6;
+            background: linear-gradient(135deg, #121212, #1e1e1e);
         }
         
         .container {
@@ -41,6 +55,40 @@
         .game-info {
             font-size: 1.2rem;
             margin-bottom: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .player-turn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .turn-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+            animation: pulse-gentle 1.5s infinite alternate;
+        }
+        
+        .turn-indicator.player1 {
+            background-color: var(--player1);
+        }
+        
+        .turn-indicator.player2 {
+            background-color: var(--player2);
+        }
+        
+        .timer {
+            font-size: 1rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
         }
         
         .controls {
@@ -48,6 +96,7 @@
             display: flex;
             justify-content: center;
             gap: 1rem;
+            flex-wrap: wrap;
         }
         
         button {
@@ -82,10 +131,11 @@
         
         .board-container {
             position: relative;
-            padding: 10px;
+            padding: 15px;
             background-color: var(--board);
-            border-radius: 10px;
+            border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
         }
         
         .board {
@@ -114,6 +164,7 @@
             justify-content: center;
             position: relative;
             box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
         }
         
         .column-overlay {
@@ -137,22 +188,30 @@
             display: none;
         }
         
+        .preview-disc.player1 {
+            background: radial-gradient(circle at 30% 30%, #7fc4ff, var(--player1));
+        }
+        
+        .preview-disc.player2 {
+            background: radial-gradient(circle at 30% 30%, #ff9e9e, var(--player2));
+        }
+        
         .disc {
             width: 90%;
             height: 90%;
             border-radius: 50%;
             position: absolute;
             opacity: 0;
-            transition: transform 0.5s ease-in-out, opacity 0.2s;
+            transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.2s;
         }
         
         .disc.player1 {
-            background: radial-gradient(circle at 30% 30%, #ff9a9e, var(--primary));
+            background: radial-gradient(circle at 30% 30%, #7fc4ff, var(--player1));
             box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
         }
         
         .disc.player2 {
-            background: radial-gradient(circle at 30% 30%, #ffbf96, var(--secondary));
+            background: radial-gradient(circle at 30% 30%, #ff9e9e, var(--player2));
             box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
         }
         
@@ -168,6 +227,17 @@
             100% {
                 transform: scale(1.05);
                 box-shadow: 0 0 20px 10px rgba(255, 255, 255, 0.5);
+            }
+        }
+        
+        @keyframes pulse-gentle {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1.2);
+                opacity: 1;
             }
         }
         
@@ -233,6 +303,186 @@
             border-radius: 4px;
         }
         
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f0f;
+            opacity: 0.8;
+            animation: confetti-fall linear forwards;
+        }
+        
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+        
+        .settings-panel {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 50;
+        }
+        
+        .toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--light);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            box-shadow: none;
+        }
+        
+        .toggle-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .toggle-icon {
+            font-size: 1.2rem;
+        }
+        
+        /* Sound controls */
+        .sound-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        
+        .volume-slider {
+            width: 100px;
+            height: 5px;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            outline: none;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: var(--light);
+            cursor: pointer;
+        }
+        
+        /* Difficulty selector */
+        .difficulty-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .difficulty-label {
+            font-size: 0.9rem;
+        }
+        
+        .difficulty-select {
+            padding: 5px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: var(--light);
+            border: none;
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        .difficulty-select option {
+            background-color: var(--dark);
+            color: var(--light);
+        }
+        
+        /* Animations for cell highlight */
+        .highlight-column {
+            animation: highlight 0.5s ease;
+        }
+        
+        @keyframes highlight {
+            0% {
+                background-color: rgba(255, 255, 255, 0);
+            }
+            50% {
+                background-color: rgba(255, 255, 255, 0.2);
+            }
+            100% {
+                background-color: rgba(255, 255, 255, 0);
+            }
+        }
+        
+        .player-name {
+            display: inline-block;
+            font-weight: bold;
+        }
+        
+        .player-name.player1 {
+            color: var(--player1);
+        }
+        
+        .player-name.player2 {
+            color: var(--player2);
+        }
+        
+        /* Theme selector */
+        .theme-selector {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .theme-option {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.2s ease;
+        }
+        
+        .theme-option:hover {
+            transform: scale(1.2);
+        }
+        
+        .theme-option.active {
+            border-color: white;
+        }
+        
+        /* Color themes */
+        .theme-classic {
+            background: linear-gradient(to bottom right, #3498db, #e74c3c);
+        }
+        
+        .theme-neon {
+            background: linear-gradient(to bottom right, #00ff00, #ff00ff);
+        }
+        
+        .theme-pastel {
+            background: linear-gradient(to bottom right, #a5d8ff, #ffafcc);
+        }
+        
+        .theme-sunset {
+            background: linear-gradient(to bottom right, #ff9a00, #ff005d);
+        }
+        
         @media (max-width: 600px) {
             .cell {
                 width: 40px;
@@ -247,14 +497,52 @@
                 width: 40px;
                 height: 40px;
             }
+            
+            .settings-panel {
+                position: static;
+                margin-bottom: 15px;
+                width: 100%;
+                max-width: 300px;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="settings-panel">
+        <button id="theme-toggle" class="toggle-btn">
+            <span class="toggle-icon">🌙</span> Dark Mode
+        </button>
+        <div class="sound-controls">
+            <span class="toggle-icon">🔊</span>
+            <input type="range" id="volume-slider" class="volume-slider" min="0" max="100" value="70">
+        </div>
+        <div class="difficulty-selector">
+            <span class="difficulty-label">AI:</span>
+            <select id="difficulty-select" class="difficulty-select">
+                <option value="0">2 Players</option>
+                <option value="1">Easy</option>
+                <option value="2">Medium</option>
+                <option value="3">Hard</option>
+            </select>
+        </div>
+        <div class="theme-selector">
+            <div class="theme-option theme-classic active" data-theme="classic"></div>
+            <div class="theme-option theme-neon" data-theme="neon"></div>
+            <div class="theme-option theme-pastel" data-theme="pastel"></div>
+            <div class="theme-option theme-sunset" data-theme="sunset"></div>
+        </div>
+    </div>
+    
     <div class="container">
         <h1>Four in a Row</h1>
         <div class="game-info">
-            <p id="turn-info">Player 1's turn</p>
+            <div class="player-turn">
+                <div id="turn-indicator" class="turn-indicator player1"></div>
+                <p id="turn-info">
+                    <span id="player-name" class="player-name player1">Player 1</span>'s turn
+                </p>
+            </div>
+            <div id="timer" class="timer">Time: 0s</div>
         </div>
         <div class="stats">
             <div class="stats-item" id="player1-wins">Player 1: 0</div>
@@ -264,6 +552,8 @@
         <div class="controls">
             <button id="reset-btn">New Game</button>
             <button id="undo-btn">Undo Move</button>
+            <button id="hint-btn">Hint</button>
+            <button id="player-names-btn">Edit Names</button>
         </div>
     </div>
     
@@ -275,7 +565,23 @@
         <div class="modal-content">
             <h2 id="modal-title">Player 1 Wins!</h2>
             <p id="modal-message">Congratulations!</p>
+            <div id="modal-stats"></div>
             <button id="play-again-btn">Play Again</button>
+        </div>
+    </div>
+    
+    <div class="modal" id="names-modal">
+        <div class="modal-content">
+            <h2>Player Names</h2>
+            <div style="margin-bottom: 15px;">
+                <label for="player1-name">Player 1:</label>
+                <input type="text" id="player1-name" style="padding: 5px; margin: 5px; border-radius: 4px; border: 1px solid #ccc;">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="player2-name">Player 2:</label>
+                <input type="text" id="player2-name" style="padding: 5px; margin: 5px; border-radius: 4px; border: 1px solid #ccc;">
+            </div>
+            <button id="save-names-btn">Save</button>
         </div>
     </div>
 
@@ -293,22 +599,76 @@
                 player2Wins: 0,
                 draws: 0
             };
+            let gameStartTime = Date.now();
+            let gameTimer;
+            let gameTime = 0;
+            let playerNames = {
+                player1: "Player 1",
+                player2: "Player 2"
+            };
+            let soundEnabled = true;
+            let soundVolume = 0.7;
+            let aiDifficulty = 0; // 0 = off, 1 = easy, 2 = medium, 3 = hard
+            let confettiTimeout;
+            let hintTimeout;
             
-            // Load stats from local storage
-            loadStats();
+            // Load saved settings
+            loadSettings();
             
             // DOM elements
             const boardElement = document.getElementById('board');
             const turnInfo = document.getElementById('turn-info');
+            const turnIndicator = document.getElementById('turn-indicator');
             const resetBtn = document.getElementById('reset-btn');
             const undoBtn = document.getElementById('undo-btn');
-            const modal = document.getElementById('win-modal');
+            const hintBtn = document.getElementById('hint-btn');
+            const playerNameBtn = document.getElementById('player-names-btn');
+            const winModal = document.getElementById('win-modal');
+            const namesModal = document.getElementById('names-modal');
             const modalTitle = document.getElementById('modal-title');
             const modalMessage = document.getElementById('modal-message');
+            const modalStats = document.getElementById('modal-stats');
             const playAgainBtn = document.getElementById('play-again-btn');
             const player1WinsElem = document.getElementById('player1-wins');
             const player2WinsElem = document.getElementById('player2-wins');
             const drawsElem = document.getElementById('draws');
+            const timerElem = document.getElementById('timer');
+            const playerNameElem = document.getElementById('player-name');
+            const themeToggle = document.getElementById('theme-toggle');
+            const volumeSlider = document.getElementById('volume-slider');
+            const difficultySelect = document.getElementById('difficulty-select');
+            const player1NameInput = document.getElementById('player1-name');
+            const player2NameInput = document.getElementById('player2-name');
+            const saveNamesBtn = document.getElementById('save-names-btn');
+            const themeOptions = document.querySelectorAll('.theme-option');
+            
+            // Audio elements
+            const dropSound = new Audio('data:audio/wav;base64,UklGRisAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQcAACBsACBgAFpXUEZIT1heaXJ8gYiKio2KiYJ8dGxkW1FIQDo2My4qJSIgHBkVEQ==');
+            const winSound = new Audio('data:audio/wav;base64,UklGRswAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YagAAACAgICEgYB/f3F3ZnR3entxeXt5dYJ8gH98fH5ycXF2eX1/fX17eHt2dHFzcnFvcnRwcHR2c3R2c3R1c3N0cXF0cnBwcnBucG9tb29ucG9tbm9tb25ubnFxcXN0c3N1c3J0cnBxcG5wcG9wbm5wbm1vbm1wcG9wc3JydXV1d3V0dnV0dXV1dXNzdHNydXNydHJxc3FxdHJxdXRzdnV0d3V0d3d2eHl3eXp5enx6eoCAgIKEg4OFiIeHiY2MjI6QkJCTkJCSlpOVlpWTlpSTlJOUlY+OkZGOj4+PjY2OiYoAA==');
+            const drawSound = new Audio('data:audio/wav;base64,UklGRnAAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YUIAAAB7d3p1dm9xbm1pZ21sYm9pZ29tbnZ0eH17gIGHhoqMj46QlpaWl5qZmZqcmZybmpuZmpqZmZiXlpeSkZONjgAA');
+            const buttonSound = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=');
+            
+            // Initialize settings
+            updateVolumeSettings();
+            difficultySelect.value = aiDifficulty;
+            player1NameInput.value = playerNames.player1;
+            player2NameInput.value = playerNames.player2;
+            
+            // Set up theme toggle
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark-mode');
+                themeToggle.querySelector('.toggle-icon').textContent = '☀️';
+            }
+            
+            // Initialize the active theme
+            const currentTheme = localStorage.getItem('colorTheme') || 'classic';
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.classList.remove('active');
+                if (option.dataset.theme === currentTheme) {
+                    option.classList.add('active');
+                }
+            });
+            applyColorTheme(currentTheme);
             
             // Create the game board
             function createBoard() {
@@ -333,15 +693,25 @@
                             previewDisc.style.display = 'block';
                             previewDisc.className = 'preview-disc';
                             previewDisc.classList.add(`player${currentPlayer}`);
+                            
+                            // Highlight the column
+                            highlightColumn(col);
                         }
                     });
                     
                     columnOverlay.addEventListener('mouseout', () => {
                         previewDisc.style.display = 'none';
+                        
+                        // Remove highlight
+                        const cells = document.querySelectorAll(`.cell[data-col="${col}"]`);
+                        cells.forEach(cell => {
+                            cell.classList.remove('highlight-column');
+                        });
                     });
                     
                     columnOverlay.addEventListener('click', () => {
-                        if (gameActive) {
+                        if (gameActive && (currentPlayer === 1 || aiDifficulty === 0)) {
+                            playSound(buttonSound);
                             dropDisc(col);
                         }
                     });
@@ -372,6 +742,14 @@
                     
                     boardElement.appendChild(column);
                 }
+            }
+            
+            // Highlight a column
+            function highlightColumn(col) {
+                const cells = document.querySelectorAll(`.cell[data-col="${col}"]`);
+                cells.forEach(cell => {
+                    cell.classList.add('highlight-column');
+                });
             }
             
             // Drop a disc in the specified column
@@ -408,6 +786,9 @@
                 // Add the move to history
                 moveHistory.push({ row, col, player: currentPlayer });
                 
+                // Play drop sound
+                playSound(dropSound);
+                
                 // After a short delay, animate the disc falling
                 setTimeout(() => {
                     disc.style.transform = `translateY(${finalTop}px)`;
@@ -424,234 +805,36 @@
                             
                             if (isWin) {
                                 gameActive = false;
+                                clearInterval(gameTimer);
                                 highlightWinningCells(isWin);
                                 updateStats(`player${currentPlayer}Wins`);
+                                
+                                // Play win sound
+                                playSound(winSound);
+                                
+                                // Show confetti animation
+                                createConfetti();
+                                
                                 setTimeout(() => {
-                                    modalTitle.textContent = `Player ${currentPlayer} Wins!`;
-                                    modalMessage.textContent = 'Congratulations!';
-                                    modal.classList.add('active');
+                                    modalTitle.textContent = `${playerNames['player' + currentPlayer]} Wins!`;
+                                    modalMessage.textContent = `Game completed in ${formatTime(gameTime)}`;
+                                    modalStats.textContent = `Current streak: ${getCurrentStreak()}`;
+                                    winModal.classList.add('active');
                                 }, 600);
                             } else if (isDraw) {
                                 gameActive = false;
+                                clearInterval(gameTimer);
                                 updateStats('draws');
+                                
+                                // Play draw sound
+                                playSound(drawSound);
+                                
                                 setTimeout(() => {
                                     modalTitle.textContent = 'It\'s a Draw!';
-                                    modalMessage.textContent = 'No more moves available.';
-                                    modal.classList.add('active');
+                                    modalMessage.textContent = `Game completed in ${formatTime(gameTime)}`;
+                                    modalStats.textContent = '';
+                                    winModal.classList.add('active');
                                 }, 600);
                             } else {
                                 // Switch players
-                                currentPlayer = currentPlayer === 1 ? 2 : 1;
-                                updateTurnInfo();
-                            }
-                        }, 100);
-                    }, 500);
-                }, 50);
-            }
-            
-            // Check if the current move results in a win
-            function checkWin(row, col, player) {
-                // Arrays to store the winning cells
-                const winningCells = [];
-                
-                // Check horizontal
-                let count = 0;
-                let tempWinningCells = [];
-                for (let c = 0; c < COLS; c++) {
-                    if (board[row][c] === player) {
-                        count++;
-                        tempWinningCells.push({ row, col: c });
-                        if (count >= 4) {
-                            winningCells.push(...tempWinningCells.slice(-4));
-                            return winningCells;
-                        }
-                    } else {
-                        count = 0;
-                        tempWinningCells = [];
-                    }
-                }
-                
-                // Check vertical
-                count = 0;
-                tempWinningCells = [];
-                for (let r = 0; r < ROWS; r++) {
-                    if (board[r][col] === player) {
-                        count++;
-                        tempWinningCells.push({ row: r, col });
-                        if (count >= 4) {
-                            winningCells.push(...tempWinningCells.slice(-4));
-                            return winningCells;
-                        }
-                    } else {
-                        count = 0;
-                        tempWinningCells = [];
-                    }
-                }
-                
-                // Check diagonal (bottom-left to top-right)
-                count = 0;
-                tempWinningCells = [];
-                let startRow = row + Math.min(col, row);
-                let startCol = col - Math.min(col, row);
-                while (startRow >= 0 && startCol < COLS) {
-                    if (startRow < ROWS) {
-                        if (board[startRow][startCol] === player) {
-                            count++;
-                            tempWinningCells.push({ row: startRow, col: startCol });
-                            if (count >= 4) {
-                                winningCells.push(...tempWinningCells.slice(-4));
-                                return winningCells;
-                            }
-                        } else {
-                            count = 0;
-                            tempWinningCells = [];
-                        }
-                    }
-                    startRow--;
-                    startCol++;
-                }
-                
-                // Check diagonal (top-left to bottom-right)
-                count = 0;
-                tempWinningCells = [];
-                startRow = row - Math.min(col, ROWS - 1 - row);
-                startCol = col - Math.min(col, ROWS - 1 - row);
-                while (startRow < ROWS && startCol < COLS) {
-                    if (startRow >= 0) {
-                        if (board[startRow][startCol] === player) {
-                            count++;
-                            tempWinningCells.push({ row: startRow, col: startCol });
-                            if (count >= 4) {
-                                winningCells.push(...tempWinningCells.slice(-4));
-                                return winningCells;
-                            }
-                        } else {
-                            count = 0;
-                            tempWinningCells = [];
-                        }
-                    }
-                    startRow++;
-                    startCol++;
-                }
-                
-                return false;
-            }
-            
-            // Check if the game is a draw
-            function checkDraw() {
-                for (let c = 0; c < COLS; c++) {
-                    if (board[0][c] === 0) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-            
-            // Highlight the winning cells
-            function highlightWinningCells(cells) {
-                cells.forEach(({ row, col }) => {
-                    const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
-                    cell.classList.add('winning-cell');
-                });
-            }
-            
-            // Update the turn information
-            function updateTurnInfo() {
-                turnInfo.textContent = `Player ${currentPlayer}'s turn`;
-                
-                // Update preview discs
-                document.querySelectorAll('.preview-disc').forEach(disc => {
-                    disc.className = 'preview-disc';
-                    disc.classList.add(`player${currentPlayer}`);
-                });
-            }
-            
-            // Update stats
-            function updateStats(stat) {
-                stats[stat]++;
-                saveStats();
-                updateStatsDisplay();
-            }
-            
-            // Update stats display
-            function updateStatsDisplay() {
-                player1WinsElem.textContent = `Player 1: ${stats.player1Wins}`;
-                player2WinsElem.textContent = `Player 2: ${stats.player2Wins}`;
-                drawsElem.textContent = `Draws: ${stats.draws}`;
-            }
-            
-            // Save stats to local storage
-            function saveStats() {
-                localStorage.setItem('fourInARowStats', JSON.stringify(stats));
-            }
-            
-            // Load stats from local storage
-            function loadStats() {
-                const savedStats = localStorage.getItem('fourInARowStats');
-                if (savedStats) {
-                    stats = JSON.parse(savedStats);
-                    updateStatsDisplay();
-                }
-            }
-            
-            // Reset the game
-            function resetGame() {
-                // Reset the board array
-                for (let r = 0; r < ROWS; r++) {
-                    for (let c = 0; c < COLS; c++) {
-                        board[r][c] = 0;
-                    }
-                }
-                
-                // Reset game state
-                currentPlayer = 1;
-                gameActive = true;
-                moveHistory = [];
-                
-                // Reset UI
-                document.querySelectorAll('.disc').forEach(disc => {
-                    disc.className = 'disc';
-                    disc.style.opacity = '0';
-                    disc.style.transform = 'translateY(0)';
-                });
-                
-                document.querySelectorAll('.cell').forEach(cell => {
-                    cell.classList.remove('winning-cell');
-                });
-                
-                updateTurnInfo();
-                modal.classList.remove('active');
-            }
-            
-            // Undo the last move
-            function undoMove() {
-                if (moveHistory.length === 0 || !gameActive) return;
-                
-                const lastMove = moveHistory.pop();
-                const { row, col } = lastMove;
-                
-                // Update the board array
-                board[row][col] = 0;
-                
-                // Update the UI
-                const disc = document.querySelector(`.disc[data-row="${row}"][data-col="${col}"]`);
-                disc.className = 'disc';
-                disc.style.opacity = '0';
-                
-                // Switch back to the previous player
-                currentPlayer = currentPlayer === 1 ? 2 : 1;
-                updateTurnInfo();
-            }
-            
-            // Event listeners
-            resetBtn.addEventListener('click', resetGame);
-            undoBtn.addEventListener('click', undoMove);
-            playAgainBtn.addEventListener('click', resetGame);
-            
-            // Initialize the game
-            createBoard();
-            updateTurnInfo();
-        });
-    </script>
-</body>
-</html>
+                                currentPlayer = currentPlayer === 1 ?
