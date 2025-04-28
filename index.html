@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Four in a Row - Enhanced</title>
+    <title>Four in a Row - Ultimate</title>
     <style>
         :root {
             --primary: #3498db;
@@ -14,7 +14,7 @@
             --player1: #3498db;
             --player2: #e74c3c;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, var(--dark), #34495e);
@@ -28,7 +28,7 @@
             color: var(--light);
             transition: background 0.5s ease;
         }
-        
+
         .dark-mode {
             --primary: #bb86fc;
             --secondary: #03dac6;
@@ -39,19 +39,19 @@
             --player2: #03dac6;
             background: linear-gradient(135deg, #121212, #1e1e1e);
         }
-        
+
         .container {
             text-align: center;
             margin-bottom: 2rem;
         }
-        
+
         h1 {
             font-size: 2.5rem;
             margin-bottom: 0.5rem;
             color: var(--light);
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
-        
+
         .game-info {
             font-size: 1.2rem;
             margin-bottom: 1rem;
@@ -60,13 +60,13 @@
             align-items: center;
             gap: 1rem;
         }
-        
+
         .player-turn {
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
-        
+
         .turn-indicator {
             width: 20px;
             height: 20px;
@@ -75,22 +75,22 @@
             margin-right: 5px;
             animation: pulse-gentle 1.5s infinite alternate;
         }
-        
+
         .turn-indicator.player1 {
             background-color: var(--player1);
         }
-        
+
         .turn-indicator.player2 {
             background-color: var(--player2);
         }
-        
-        .timer {
+
+        .timer, .score {
             font-size: 1rem;
             background-color: rgba(0, 0, 0, 0.2);
             padding: 0.3rem 0.8rem;
             border-radius: 4px;
         }
-        
+
         .controls {
             margin-bottom: 1rem;
             display: flex;
@@ -98,7 +98,7 @@
             gap: 1rem;
             flex-wrap: wrap;
         }
-        
+
         button {
             background-color: var(--primary);
             color: white;
@@ -110,25 +110,25 @@
             transition: all 0.3s ease;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
-        
+
         button:hover {
             background-color: #2980b9;
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
-        
+
         button:active {
             transform: translateY(0);
         }
-        
+
         #reset-btn {
             background-color: var(--secondary);
         }
-        
+
         #reset-btn:hover {
             background-color: #c0392b;
         }
-        
+
         .board-container {
             position: relative;
             padding: 15px;
@@ -137,7 +137,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             transition: all 0.3s ease;
         }
-        
+
         .board {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -147,13 +147,13 @@
             border-radius: 8px;
             position: relative;
         }
-        
+
         .column {
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
-        
+
         .cell {
             width: 60px;
             height: 60px;
@@ -166,7 +166,7 @@
             box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
             transition: background-color 0.3s ease;
         }
-        
+
         .column-overlay {
             position: absolute;
             top: 0;
@@ -177,7 +177,7 @@
             display: flex;
             justify-content: center;
         }
-        
+
         .preview-disc {
             width: 60px;
             height: 60px;
@@ -187,60 +187,48 @@
             opacity: 0.5;
             display: none;
         }
-        
+
         .preview-disc.player1 {
             background: radial-gradient(circle at 30% 30%, #7fc4ff, var(--player1));
         }
-        
+
         .preview-disc.player2 {
             background: radial-gradient(circle at 30% 30%, #ff9e9e, var(--player2));
         }
-        
+
         .disc {
             width: 90%;
             height: 90%;
             border-radius: 50%;
             position: absolute;
             opacity: 0;
-            transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.2s;
+            transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.2s;
         }
-        
+
         .disc.player1 {
             background: radial-gradient(circle at 30% 30%, #7fc4ff, var(--player1));
             box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
         }
-        
+
         .disc.player2 {
             background: radial-gradient(circle at 30% 30%, #ff9e9e, var(--player2));
             box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
         }
-        
+
         .winning-cell {
             animation: pulse 1s infinite alternate;
         }
-        
+
         @keyframes pulse {
-            0% {
-                transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
-            }
-            100% {
-                transform: scale(1.05);
-                box-shadow: 0 0 20px 10px rgba(255, 255, 255, 0.5);
-            }
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+            100% { transform: scale(1.05); box-shadow: 0 0 20px 10px rgba(255, 255, 255, 0.5); }
         }
-        
+
         @keyframes pulse-gentle {
-            0% {
-                transform: scale(1);
-                opacity: 0.8;
-            }
-            100% {
-                transform: scale(1.2);
-                opacity: 1;
-            }
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.2); opacity: 1; }
         }
-        
+
         .modal {
             position: fixed;
             top: 0;
@@ -256,12 +244,12 @@
             pointer-events: none;
             transition: opacity 0.3s ease;
         }
-        
+
         .modal.active {
             opacity: 1;
             pointer-events: auto;
         }
-        
+
         .modal-content {
             background: var(--light);
             color: var(--dark);
@@ -274,21 +262,21 @@
             max-width: 90%;
             width: 400px;
         }
-        
+
         .modal.active .modal-content {
             transform: scale(1);
         }
-        
+
         .modal h2 {
             margin-top: 0;
             color: var(--dark);
         }
-        
+
         .modal p {
             margin-bottom: 1.5rem;
             font-size: 1.2rem;
         }
-        
+
         .stats {
             display: flex;
             justify-content: center;
@@ -296,31 +284,26 @@
             margin-bottom: 1rem;
             font-size: 1.1rem;
         }
-        
+
         .stats-item {
             background-color: rgba(0, 0, 0, 0.1);
             padding: 0.5rem 1rem;
             border-radius: 4px;
         }
-        
+
         .confetti {
-            position: absolute;
+            position: fixed;
             width: 10px;
             height: 10px;
-            background-color: #f0f;
             opacity: 0.8;
             animation: confetti-fall linear forwards;
         }
-        
+
         @keyframes confetti-fall {
-            0% {
-                transform: translateY(-100vh) rotate(0deg);
-            }
-            100% {
-                transform: translateY(100vh) rotate(360deg);
-            }
+            0% { transform: translateY(-100vh) rotate(0deg); }
+            100% { transform: translateY(100vh) rotate(360deg); }
         }
-        
+
         .settings-panel {
             position: absolute;
             top: 10px;
@@ -333,7 +316,7 @@
             gap: 10px;
             z-index: 50;
         }
-        
+
         .toggle-btn {
             display: flex;
             align-items: center;
@@ -345,17 +328,17 @@
             padding: 5px;
             box-shadow: none;
         }
-        
+
         .toggle-btn:hover {
             background-color: rgba(255, 255, 255, 0.1);
             transform: none;
             box-shadow: none;
         }
-        
+
         .toggle-icon {
             font-size: 1.2rem;
         }
-        
+
         .sound-controls {
             display: flex;
             align-items: center;
@@ -363,7 +346,7 @@
             gap: 10px;
             margin-top: 5px;
         }
-        
+
         .volume-slider {
             width: 100px;
             height: 5px;
@@ -372,7 +355,7 @@
             border-radius: 5px;
             outline: none;
         }
-        
+
         .volume-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             width: 15px;
@@ -381,7 +364,7 @@
             background: var(--light);
             cursor: pointer;
         }
-        
+
         .difficulty-selector {
             display: flex;
             align-items: center;
@@ -389,11 +372,11 @@
             gap: 10px;
             margin-top: 10px;
         }
-        
+
         .difficulty-label {
             font-size: 0.9rem;
         }
-        
+
         .difficulty-select {
             padding: 5px;
             background-color: rgba(255, 255, 255, 0.2);
@@ -402,41 +385,35 @@
             border-radius: 4px;
             outline: none;
         }
-        
+
         .difficulty-select option {
             background-color: var(--dark);
             color: var(--light);
         }
-        
+
         .highlight-column {
             animation: highlight 0.5s ease;
         }
-        
+
         @keyframes highlight {
-            0% {
-                background-color: rgba(255, 255, 255, 0);
-            }
-            50% {
-                background-color: rgba(255, 255, 255, 0.2);
-            }
-            100% {
-                background-color: rgba(255, 255, 255, 0);
-            }
+            0% { background-color: rgba(255, 255, 255, 0); }
+            50% { background-color: rgba(255, 255, 255, 0.2); }
+            100% { background-color: rgba(255, 255, 255, 0); }
         }
-        
+
         .player-name {
             display: inline-block;
             font-weight: bold;
         }
-        
+
         .player-name.player1 {
             color: var(--player1);
         }
-        
+
         .player-name.player2 {
             color: var(--player2);
         }
-        
+
         .theme-selector {
             display: flex;
             flex-wrap: wrap;
@@ -444,7 +421,7 @@
             gap: 10px;
             margin-top: 10px;
         }
-        
+
         .theme-option {
             width: 25px;
             height: 25px;
@@ -453,31 +430,20 @@
             border: 2px solid transparent;
             transition: transform 0.2s ease;
         }
-        
+
         .theme-option:hover {
             transform: scale(1.2);
         }
-        
+
         .theme-option.active {
             border-color: white;
         }
-        
-        .theme-classic {
-            background: linear-gradient(to bottom right, #3498db, #e74c3c);
-        }
-        
-        .theme-neon {
-            background: linear-gradient(to bottom right, #00ff00, #ff00ff);
-        }
-        
-        .theme-pastel {
-            background: linear-gradient(to bottom right, #a5d8ff, #ffafcc);
-        }
-        
-        .theme-sunset {
-            background: linear-gradient(to bottom right, #ff9a00, #ff005d);
-        }
-        
+
+        .theme-classic { background: linear-gradient(to bottom right, #3498db, #e74c3c); }
+        .theme-neon { background: linear-gradient(to bottom right, #00ff00, #ff00ff); }
+        .theme-pastel { background: linear-gradient(to bottom right, #a5d8ff, #ffafcc); }
+        .theme-sunset { background: linear-gradient(to bottom right, #ff9a00, #ff005d); }
+
         .hint {
             position: absolute;
             width: 100%;
@@ -487,33 +453,52 @@
             z-index: 5;
             animation: hint-pulse 1s infinite alternate;
         }
-        
+
         @keyframes hint-pulse {
-            0% {
-                opacity: 0.2;
-                transform: scale(0.8);
-            }
-            100% {
-                opacity: 0.5;
-                transform: scale(1.1);
-            }
+            0% { opacity: 0.2; transform: scale(0.8); }
+            100% { opacity: 0.5; transform: scale(1.1); }
         }
-        
+
+        .leaderboard {
+            margin-top: 1rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .leaderboard h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.2rem;
+        }
+
+        .leaderboard ol {
+            list-style-position: inside;
+            padding: 0;
+            margin: 0;
+        }
+
+        .leaderboard li {
+            padding: 0.3rem 0;
+            font-size: 1rem;
+        }
+
         @media (max-width: 600px) {
             .cell {
                 width: 40px;
                 height: 40px;
             }
-            
+
             .column-overlay {
                 width: 56px;
             }
-            
+
             .preview-disc {
                 width: 40px;
                 height: 40px;
             }
-            
+
             .settings-panel {
                 position: static;
                 margin-bottom: 15px;
@@ -539,6 +524,7 @@
                 <option value="1">Easy</option>
                 <option value="2">Medium</option>
                 <option value="3">Hard</option>
+                <option value="4">Expert</option>
             </select>
         </div>
         <div class="theme-selector">
@@ -548,7 +534,7 @@
             <div class="theme-option theme-sunset" data-theme="sunset"></div>
         </div>
     </div>
-    
+
     <div class="container">
         <h1>Four in a Row</h1>
         <div class="game-info">
@@ -559,6 +545,7 @@
                 </p>
             </div>
             <div id="timer" class="timer">Time: 0s</div>
+            <div id="score" class="score">Score: 0</div>
         </div>
         <div class="stats">
             <div class="stats-item" id="player1-wins">Player 1: 0</div>
@@ -571,12 +558,16 @@
             <button id="hint-btn">Hint</button>
             <button id="player-names-btn">Edit Names</button>
         </div>
+        <div class="leaderboard">
+            <h3>Leaderboard</h3>
+            <ol id="leaderboard-list"></ol>
+        </div>
     </div>
-    
+
     <div class="board-container">
         <div class="board" id="board"></div>
     </div>
-    
+
     <div class="modal" id="win-modal">
         <div class="modal-content">
             <h2 id="modal-title">Player 1 Wins!</h2>
@@ -585,7 +576,7 @@
             <button id="play-again-btn">Play Again</button>
         </div>
     </div>
-    
+
     <div class="modal" id="names-modal">
         <div class="modal-content">
             <h2>Player Names</h2>
@@ -610,25 +601,20 @@
             let currentPlayer = 1;
             let gameActive = true;
             let moveHistory = [];
-            let stats = {
-                player1Wins: 0,
-                player2Wins: 0,
-                draws: 0
-            };
+            let stats = { player1Wins: 0, player2Wins: 0, draws: 0 };
             let gameStartTime = Date.now();
             let gameTimer;
             let gameTime = 0;
-            let playerNames = {
-                player1: "Player 1",
-                player2: "Player 2"
-            };
+            let score = 0;
+            let playerNames = { player1: "Player 1", player2: "Player 2" };
             let soundEnabled = true;
             let soundVolume = 0.7;
-            let aiDifficulty = 0; // 0 = off, 1 = easy, 2 = medium, 3 = hard
+            let aiDifficulty = 0; // 0 = off, 1 = easy, 2 = medium, 3 = hard, 4 = expert
             let confettiTimeout;
             let hintTimeout;
             let currentStreak = 0;
             let lastWinner = null;
+            let leaderboard = [];
 
             // Load saved settings
             loadSettings();
@@ -651,6 +637,7 @@
             const player2WinsElem = document.getElementById('player2-wins');
             const drawsElem = document.getElementById('draws');
             const timerElem = document.getElementById('timer');
+            const scoreElem = document.getElementById('score');
             const playerNameElem = document.getElementById('player-name');
             const themeToggle = document.getElementById('theme-toggle');
             const volumeSlider = document.getElementById('volume-slider');
@@ -659,6 +646,7 @@
             const player2NameInput = document.getElementById('player2-name');
             const saveNamesBtn = document.getElementById('save-names-btn');
             const themeOptions = document.querySelectorAll('.theme-option');
+            const leaderboardList = document.getElementById('leaderboard-list');
 
             // Audio elements
             const dropSound = new Audio('data:audio/wav;base64,UklGRisAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQcAACBsACBgAFpXUEZIT1heaXJ8gYiKio2KiYJ8dGxkW1FIQDo2My4qJSIgHBkVEQ==');
@@ -671,6 +659,7 @@
             difficultySelect.value = aiDifficulty;
             player1NameInput.value = playerNames.player1;
             player2NameInput.value = playerNames.player2;
+            updateLeaderboard();
 
             // Set up theme toggle
             if (localStorage.getItem('darkMode') === 'true') {
@@ -835,53 +824,63 @@
                 moveHistory.push({ row, col, player: currentPlayer });
                 playSound(dropSound);
 
+                // Bounce animation
                 setTimeout(() => {
                     disc.style.transform = `translateY(0)`;
                     setTimeout(() => {
-                        disc.style.transform = 'translateY(-10px)';
+                        disc.style.transform = 'translateY(-15px)';
                         setTimeout(() => {
                             disc.style.transform = 'translateY(0)';
-                            const isWin = checkWin(row, col, currentPlayer);
-                            const isDraw = checkDraw();
-                            if (isWin) {
-                                gameActive = false;
-                                clearInterval(gameTimer);
-                                highlightWinningCells(isWin);
-                                updateStats(`player${currentPlayer}Wins`);
-                                playSound(winSound);
-                                createConfetti();
+                            setTimeout(() => {
+                                disc.style.transform = 'translateY(-5px)';
                                 setTimeout(() => {
-                                    modalTitle.textContent = `${playerNames['player' + currentPlayer]} Wins!`;
-                                    modalMessage.textContent = `Game completed in ${formatTime(gameTime)}`;
-                                    modalStats.textContent = `Current streak: ${getCurrentStreak()}`;
-                                    winModal.classList.add('active');
-                                }, 600);
-                            } else if (isDraw) {
-                                gameActive = false;
-                                clearInterval(gameTimer);
-                                updateStats('draws');
-                                playSound(drawSound);
-                                setTimeout(() => {
-                                    modalTitle.textContent = 'Draw!';
-                                    modalMessage.textContent = `Game completed in ${formatTime(gameTime)}`;
-                                    modalStats.textContent = `No winner this time!`;
-                                    winModal.classList.add('active');
-                                }, 600);
-                            } else {
-                                switchPlayer();
-                                if (aiDifficulty > 0 && currentPlayer === 2) {
-                                    setTimeout(makeAIMove, 500);
-                                }
-                            }
+                                    disc.style.transform = 'translateY(0)';
+                                    updateScore(10); // Award points for each move
+                                    const isWin = checkWin(row, col, currentPlayer);
+                                    const isDraw = checkDraw();
+                                    if (isWin) {
+                                        gameActive = false;
+                                        clearInterval(gameTimer);
+                                        highlightWinningCells(isWin);
+                                        updateStats(`player${currentPlayer}Wins`);
+                                        updateScore(1000 - gameTime * 10); // Bonus for quick win
+                                        playSound(winSound);
+                                        createConfetti();
+                                        updateLeaderboard();
+                                        setTimeout(() => {
+                                            modalTitle.textContent = `${playerNames['player' + currentPlayer]} Wins!`;
+                                            modalMessage.textContent = `Score: ${score} | Time: ${formatTime(gameTime)}`;
+                                            modalStats.textContent = `Current streak: ${getCurrentStreak()}`;
+                                            winModal.classList.add('active');
+                                        }, 600);
+                                    } else if (isDraw) {
+                                        gameActive = false;
+                                        clearInterval(gameTimer);
+                                        updateStats('draws');
+                                        updateScore(500); // Points for draw
+                                        playSound(drawSound);
+                                        updateLeaderboard();
+                                        setTimeout(() => {
+                                            modalTitle.textContent = 'Draw!';
+                                            modalMessage.textContent = `Score: ${score} | Time: ${formatTime(gameTime)}`;
+                                            modalStats.textContent = `No winner this time!`;
+                                            winModal.classList.add('active');
+                                        }, 600);
+                                    } else {
+                                        switchPlayer();
+                                        if (aiDifficulty > 0 && currentPlayer === 2) {
+                                            setTimeout(makeAIMove, 500);
+                                        }
+                                    }
+                                }, 100);
+                            }, 100);
                         }, 100);
                     }, 100);
                 }, 50);
             }
 
             function checkWin(row, col, player) {
-                const directions = [
-                    [0, 1], [1, 0], [1, 1], [1, -1]
-                ];
+                const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
                 let winningCells = [];
                 for (let [dr, dc] of directions) {
                     let count = 1;
@@ -953,6 +952,11 @@
                 return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
             }
 
+            function updateScore(points) {
+                score += points;
+                scoreElem.textContent = `Score: ${score}`;
+            }
+
             function updateStats(result) {
                 stats[result]++;
                 if (result === 'player1Wins' || result === 'player2Wins') {
@@ -978,10 +982,13 @@
                 currentPlayer = 1;
                 gameActive = true;
                 moveHistory = [];
+                score = 0;
+                scoreElem.textContent = `Score: ${score}`;
                 createBoard();
                 startTimer();
                 updateTurnInfo();
                 clearHints();
+                clearConfetti();
                 if (aiDifficulty > 0 && currentPlayer === 2) {
                     setTimeout(makeAIMove, 500);
                 }
@@ -995,6 +1002,7 @@
                 disc.classList.remove(`player${lastMove.player}`);
                 disc.style.opacity = '0';
                 currentPlayer = lastMove.player;
+                updateScore(-10); // Deduct points for undo
                 updateTurnInfo();
                 if (aiDifficulty > 0 && moveHistory.length && moveHistory[moveHistory.length - 1].player === 2) {
                     undoMove(); // Undo AI's move if applicable
@@ -1060,13 +1068,14 @@
                         board[row][col] = 0;
                     }
                     return validCols[Math.floor(Math.random() * validCols.length)];
-                } else if (difficulty === 3) {
+                } else {
                     let bestScore = -Infinity;
                     let bestCol = validCols[0];
+                    const depth = difficulty === 3 ? 6 : 8; // Deeper search for expert
                     for (let col of validCols) {
                         let row = getLowestEmptyRow(col);
                         board[row][col] = player;
-                        let score = minimax(board, 4, false, player, -Infinity, Infinity);
+                        let score = minimax(board, depth, false, player, -Infinity, Infinity);
                         board[row][col] = 0;
                         if (score > bestScore) {
                             bestScore = score;
@@ -1075,7 +1084,6 @@
                     }
                     return bestCol;
                 }
-                return validCols[Math.floor(Math.random() * validCols.length)];
             }
 
             function getLowestEmptyRow(col) {
@@ -1085,8 +1093,80 @@
                 return -1;
             }
 
+            function evaluateBoard(player) {
+                let score = 0;
+                const opponent = player === 1 ? 2 : 1;
+
+                // Check for winning positions
+                for (let row = 0; row < ROWS; row++) {
+                    for (let col = 0; col < COLS; col++) {
+                        if (board[row][col] !== 0) continue;
+                        board[row][col] = player;
+                        if (checkWin(row, col, player)) score += 1000;
+                        board[row][col] = opponent;
+                        if (checkWin(row, col, opponent)) score -= 900;
+                        board[row][col] = 0;
+                    }
+                }
+
+                // Evaluate potential lines
+                for (let row = 0; row < ROWS; row++) {
+                    for (let col = 0; col < COLS - 3; col++) {
+                        let window = [board[row][col], board[row][col + 1], board[row][col + 2], board[row][col + 3]];
+                        score += evaluateWindow(window, player);
+                    }
+                }
+
+                for (let col = 0; col < COLS; col++) {
+                    for (let row = 0; row < ROWS - 3; row++) {
+                        let window = [board[row][col], board[row + 1][col], board[row + 2][col], board[row + 3][col]];
+                        score += evaluateWindow(window, player);
+                    }
+                }
+
+                for (let row = 0; row < ROWS - 3; row++) {
+                    for (let col = 0; col < COLS - 3; col++) {
+                        let window = [board[row][col], board[row + 1][col + 1], board[row + 2][col + 2], board[row + 3][col + 3]];
+                        score += evaluateWindow(window, player);
+                    }
+                }
+
+                for (let row = 0; row < ROWS - 3; row++) {
+                    for (let col = 3; col < COLS; col++) {
+                        let window = [board[row][col], board[row + 1][col - 1], board[row + 2][col - 2], board[row + 3][col - 3]];
+                        score += evaluateWindow(window, player);
+                    }
+                }
+
+                // Prefer center columns
+                for (let row = 0; row < ROWS; row++) {
+                    for (let col = 0; col < COLS; col++) {
+                        if (board[row][col] === player) {
+                            score += (3 - Math.abs(3 - col)) * 10;
+                        }
+                    }
+                }
+
+                return score;
+            }
+
+            function evaluateWindow(window, player) {
+                const opponent = player === 1 ? 2 : 1;
+                let score = 0;
+                let playerCount = window.filter(cell => cell === player).length;
+                let opponentCount = window.filter(cell => cell === opponent).length;
+                let emptyCount = window.filter(cell => cell === 0).length;
+
+                if (playerCount === 3 && emptyCount === 1) score += 100;
+                else if (playerCount === 2 && emptyCount === 2) score += 10;
+                else if (opponentCount === 3 && emptyCount === 1) score -= 90;
+                else if (opponentCount === 2 && emptyCount === 2) score -= 5;
+
+                return score;
+            }
+
             function minimax(board, depth, isMaximizing, player, alpha, beta) {
-                if (depth === 0 || checkDraw()) return 0;
+                if (depth === 0 || checkDraw()) return evaluateBoard(player);
                 let validCols = [];
                 for (let col = 0; col < COLS; col++) {
                     if (getLowestEmptyRow(col) !== -1) validCols.push(col);
@@ -1100,7 +1180,7 @@
                         board[row][col] = player;
                         if (checkWin(row, col, player)) {
                             board[row][col] = 0;
-                            return 1000;
+                            return 10000 - depth;
                         }
                         let evalScore = minimax(board, depth - 1, false, player, alpha, beta);
                         board[row][col] = 0;
@@ -1116,7 +1196,7 @@
                         board[row][col] = player === 1 ? 2 : 1;
                         if (checkWin(row, col, player === 1 ? 2 : 1)) {
                             board[row][col] = 0;
-                            return -1000;
+                            return -10000 + depth;
                         }
                         let evalScore = minimax(board, depth - 1, true, player, alpha, beta);
                         board[row][col] = 0;
@@ -1129,7 +1209,7 @@
             }
 
             function createConfetti() {
-                clearTimeout(confettiTimeout);
+                clearConfetti();
                 const colors = ['#f00', '#0f0', '#00f', '#ff0', '#f0f', '#0ff'];
                 for (let i = 0; i < 100; i++) {
                     const confetti = document.createElement('div');
@@ -1142,6 +1222,11 @@
                     setTimeout(() => confetti.remove(), 5000);
                 }
                 confettiTimeout = setTimeout(() => {}, 5000);
+            }
+
+            function clearConfetti() {
+                document.querySelectorAll('.confetti').forEach(confetti => confetti.remove());
+                clearTimeout(confettiTimeout);
             }
 
             function playSound(sound) {
@@ -1186,6 +1271,23 @@
                 updateTurnInfo();
             }
 
+            function updateLeaderboard() {
+                if (score > 0 && (stats.player1Wins > stats.player1Wins - 1 || stats.draws > stats.draws - 1)) {
+                    leaderboard.push({
+                        name: playerNames['player' + currentPlayer],
+                        score,
+                        time: formatTime(gameTime),
+                        date: new Date().toLocaleDateString()
+                    });
+                    leaderboard.sort((a, b) => b.score - a.score);
+                    leaderboard = leaderboard.slice(0, 5); // Keep top 5
+                    saveSettings();
+                }
+                leaderboardList.innerHTML = leaderboard.map(entry => 
+                    `<li>${entry.name}: ${entry.score} (Time: ${entry.time}, ${entry.date})</li>`
+                ).join('');
+            }
+
             function loadSettings() {
                 const saved = localStorage.getItem('fourInARowSettings');
                 if (saved) {
@@ -1196,12 +1298,14 @@
                     aiDifficulty = settings.aiDifficulty !== undefined ? settings.aiDifficulty : aiDifficulty;
                     currentStreak = settings.currentStreak || 0;
                     lastWinner = settings.lastWinner || null;
+                    leaderboard = settings.leaderboard || [];
                     volumeSlider.value = soundVolume * 100;
                     difficultySelect.value = aiDifficulty;
                     player1WinsElem.textContent = `${playerNames.player1}: ${stats.player1Wins}`;
                     player2WinsElem.textContent = `${playerNames.player2}: ${stats.player2Wins}`;
                     drawsElem.textContent = `Draws: ${stats.draws}`;
                     updateVolumeSettings();
+                    updateLeaderboard();
                 }
             }
 
@@ -1212,7 +1316,8 @@
                     soundVolume,
                     aiDifficulty,
                     currentStreak,
-                    lastWinner
+                    lastWinner,
+                    leaderboard
                 }));
             }
         });
