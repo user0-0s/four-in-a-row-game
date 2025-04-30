@@ -778,12 +778,6 @@
             const tokenPreviewToggle = document.getElementById('tokenPreviewToggle');
             const aiHintToggle = document.getElementById('aiHintToggle');
 
-            // Sound effects
-            const sounds = {
-                win: new Audio('https://www.myinstants.com/media/sounds/victory.mp3'),
-                button: new Audio('https://www.myinstants.com/media/sounds/click.mp3')
-            };
-
             // Load saved data
             loadGameData();
 
@@ -1071,8 +1065,6 @@
                 if (settings.confetti && winner !== 0) {
                     createConfetti();
                 }
-
-                playSound('win');
 
                 // Adjust AI difficulty based on player performance
                 if (isAIMode && playerWins >= 3 && aiDifficulty !== 'master') {
