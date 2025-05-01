@@ -3,74 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Four in a Row - Enhanced</title>
+    <title>Quantum Connect 4</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* (CSS remains unchanged) */
+        @keyframes discDrop {
+            0% { transform: translateY(-500px); opacity: 0; }
+            80% { transform: translateY(10px); opacity: 1; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+            100% { transform: scale(1.1); box-shadow: 0 0 15px 5px rgba(255, 255, 255, 0.5); }
+        }
+        
+        @keyframes confettiFall {
+            0% { transform: translateY(-100vh) rotate(0deg); }
+            100% { transform: translateY(100vh) rotate(360deg); }
+        }
+        
+        @keyframes columnHighlight {
+            0% { background-color: rgba(255, 255, 255, 0); }
+            50% { background-color: rgba(255, 255, 255, 0.2); }
+            100% { background-color: rgba(255, 255, 255, 0); }
+        }
+        
+        .disc {
+            animation: discDrop 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+        
+        .winning-disc {
+            animation: pulse 1s infinite alternate;
+        }
+        
+        .highlight-column {
+            animation: columnHighlight 1s infinite;
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            opacity: 0.8;
+            animation: confettiFall linear forwards;
+        }
+        
+        .board-bg {
+            background: radial-gradient(circle at center, #1e40af 0%, #1e3a8a 100%);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .cell {
+            transition: all 0.3s ease;
+        }
+        
+        .cell:hover {
+            transform: translateY(-5px);
+        }
+        
+        .player1-disc {
+            background: radial-gradient(circle at 30% 30%, #93c5fd, #3b82f6);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .player2-disc {
+            background: radial-gradient(circle at 30% 30%, #fca5a5, #ef4444);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .preview-disc {
+            opacity: 0.5;
+            transition: all 0.2s ease;
+        }
+        
+        .modal-enter {
+            animation: modalFadeIn 0.3s forwards;
+        }
+        
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .theme-option {
+            transition: all 0.2s ease;
+        }
+        
+        .theme-option:hover {
+            transform: scale(1.1);
+        }
     </style>
 </head>
-<body>
-    <div class="settings-panel">
-        <!-- (Settings panel remains unchanged) -->
-    </div>
-
-    <div class="container">
-        <h1>Four in a Row</h1>
-        <div class="game-info">
-            <div class="player-turn">
-                <div id="turn-indicator" class="turn-indicator player1"></div>
-                <p id="turn-info">
-                    <span id="player-name" class="player-name player1">Player 1</span>'s turn
-                </p>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-4">
+    <!-- Settings Panel -->
+    <div class="absolute top-4 right-4 bg-gray-800 bg-opacity-80 rounded-lg p-3 shadow-lg z-10 backdrop-blur-sm">
+        <div class="flex flex-col space-y-3">
+            <button id="theme-toggle" class="flex items-center space-x-2 text-sm hover:text-blue-400 transition-colors">
+                <i class="fas fa-moon"></i>
+                <span>Dark Mode</span>
+            </button>
+            
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-volume-up text-sm"></i>
+                <input type="range" id="volume-slider" min="0" max="100" value="70" 
+                       class="w-24 accent-blue-500">
             </div>
-            <div id="timer" class="timer">Time: 0s</div>
-        </div>
-        <div class="stats">
-            <div class="stats-item" id="player1-wins">Player 1: 0</div>
-            <div class="stats-item" id="player2-wins">Player 2: 0</div>
-            <div class="stats-item" id="draws">Draws: 0</div>
-        </div>
-        <div class="controls">
-            <button id="reset-btn">New Game</button>
-            <button id="undo-btn">Undo Move</button>
-            <button id="hint-btn">Hint</button>
-            <button id="player-names-btn">Edit Names</button>
-        </div>
-    </div>
-
-    <div class="board-container">
-        <div class="board" id="board"></div>
-    </div>
-
-    <div class="modal" id="win-modal">
-        <div class="modal-content">
-            <h2 id="modal-title">Player 1 Wins!</h2>
-            <p id="modal-message">Congratulations!</p>
-            <div id="modal-stats"></div>
-            <button id="play-again-btn">Play Again</button>
-        </div>
-    </div>
-
-    <div class="modal" id="names-modal">
-        <div class="modal-content">
-            <h2>Player Names</h2>
-            <div style="margin-bottom: 15px;">
-                <label for="player1-name">Player 1:</label>
-                <input type="text" id="player1-name" style="padding: 5px; margin: 5px; border-radius: 4px; border: 1px solid #ccc;">
+            
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-robot text-sm"></i>
+                <select id="difficulty-select" class="bg-gray-700 text-sm rounded px-2 py-1">
+                    <option value="0">2 Players</option>
+                    <option value="1">Easy AI</option>
+                    <option value="2">Medium AI</option>
+                    <option value="3">Hard AI</option>
+                </select>
             </div>
-            <div style="margin-bottom: 15px;">
-                <label for="player2-name">Player 2:</label>
-                <input type="text" id="player2-name" style="padding: 5px; margin: 5px; border-radius: 4px; border: 1px solid #ccc;">
+            
+            <div class="flex justify-center space-x-2 pt-1">
+                <div class="theme-option w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-red-500 border-2 border-white cursor-pointer" data-theme="default"></div>
+                <div class="theme-option w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 cursor-pointer" data-theme="neon"></div>
+                <div class="theme-option w-6 h-6 rounded-full bg-gradient-to-br from-green-400 to-blue-500 cursor-pointer" data-theme="ocean"></div>
+                <div class="theme-option w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-red-500 cursor-pointer" data-theme="sunset"></div>
             </div>
-            <button id="save-names-btn">Save</button>
+        </div>
+    </div>
+
+    <!-- Main Game Container -->
+    <div class="max-w-4xl w-full flex flex-col items-center">
+        <h1 class="text-5xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+            Quantum Connect 4
+        </h1>
+        
+        <div class="flex items-center justify-center space-x-6 mb-4">
+            <div class="flex items-center space-x-2">
+                <div id="turn-indicator" class="w-5 h-5 rounded-full bg-blue-500 animate-pulse"></div>
+                <span id="turn-info" class="font-medium">
+                    <span id="player-name" class="text-blue-400">Player 1</span>'s turn
+                </span>
+            </div>
+            
+            <div id="timer" class="bg-gray-800 px-3 py-1 rounded-full text-sm">
+                <i class="fas fa-clock mr-1"></i>
+                <span>0s</span>
+            </div>
+        </div>
+        
+        <div class="flex space-x-4 mb-4">
+            <div class="stats-item bg-gray-800 px-3 py-1 rounded-full">
+                <span class="text-blue-400">Player 1:</span> <span id="player1-wins">0</span>
+            </div>
+            <div class="stats-item bg-gray-800 px-3 py-1 rounded-full">
+                <span class="text-red-400">Player 2:</span> <span id="player2-wins">0</span>
+            </div>
+            <div class="stats-item bg-gray-800 px-3 py-1 rounded-full">
+                <span>Draws:</span> <span id="draws">0</span>
+            </div>
+        </div>
+        
+        <div class="flex space-x-3 mb-6">
+            <button id="reset-btn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors">
+                <i class="fas fa-sync-alt mr-2"></i>New Game
+            </button>
+            <button id="undo-btn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors">
+                <i class="fas fa-undo mr-2"></i>Undo
+            </button>
+            <button id="hint-btn" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors">
+                <i class="fas fa-lightbulb mr-2"></i>Hint
+            </button>
+            <button id="player-names-btn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors">
+                <i class="fas fa-users mr-2"></i>Names
+            </button>
+        </div>
+        
+        <!-- Game Board -->
+        <div class="board-bg rounded-2xl p-4 relative">
+            <div id="board" class="grid grid-cols-7 gap-2 relative"></div>
+        </div>
+    </div>
+
+    <!-- Win Modal -->
+    <div id="win-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-800 rounded-xl p-8 max-w-md w-full modal-enter">
+            <h2 id="modal-title" class="text-3xl font-bold mb-2 text-center"></h2>
+            <p id="modal-message" class="text-center mb-6"></p>
+            <div id="modal-stats" class="text-center mb-6"></div>
+            <button id="play-again-btn" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-lg font-medium transition-colors">
+                Play Again
+            </button>
+        </div>
+    </div>
+
+    <!-- Player Names Modal -->
+    <div id="names-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-800 rounded-xl p-8 max-w-md w-full modal-enter">
+            <h2 class="text-2xl font-bold mb-6 text-center">Player Names</h2>
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label for="player1-name" class="block mb-1 text-blue-400">Player 1:</label>
+                    <input type="text" id="player1-name" class="w-full bg-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="player2-name" class="block mb-1 text-red-400">Player 2:</label>
+                    <input type="text" id="player2-name" class="w-full bg-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            <button id="save-names-btn" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-lg font-medium transition-colors">
+                Save Names
+            </button>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Game state
+            // Game constants
             const ROWS = 6;
             const COLS = 7;
-            const board = Array(ROWS).fill().map(() => Array(COLS).fill(0));
+            
+            // Game state
+            let board = Array(ROWS).fill().map(() => Array(COLS).fill(0));
             let currentPlayer = 1;
             let gameActive = true;
             let moveHistory = [];
@@ -89,14 +240,9 @@
             let soundEnabled = true;
             let soundVolume = 0.7;
             let aiDifficulty = 0; // 0 = off, 1 = easy, 2 = medium, 3 = hard
-            let confettiTimeout;
-            let hintTimeout;
-            let currentStreak = { player: 0, count: 0 }; // Track win streak
-            let isAnimating = false; // Track animation state
-
-            // Load saved settings
-            loadSettings();
-
+            let darkMode = false;
+            let currentTheme = 'default';
+            
             // DOM elements
             const boardElement = document.getElementById('board');
             const turnInfo = document.getElementById('turn-info');
@@ -123,111 +269,121 @@
             const player2NameInput = document.getElementById('player2-name');
             const saveNamesBtn = document.getElementById('save-names-btn');
             const themeOptions = document.querySelectorAll('.theme-option');
-
+            
             // Audio elements
             const dropSound = new Audio('data:audio/wav;base64,UklGRisAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQcAACBsACBgAFpXUEZIT1heaXJ8gYiKio2KiYJ8dGxkW1FIQDo2My4qJSIgHBkVEQ==');
             const winSound = new Audio('data:audio/wav;base64,UklGRswAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YagAAACAgICEgYB/f3F3ZnR3entxeXt5dYJ8gH98fH5ycXF2eX1/fX17eHt2dHFzcnFvcnRwcHR2c3R2c3R1c3N0cXF0cnBwcnBucG9tb29ucG9tbm9tb25ubnFxcXN0c3N1c3J0cnBxcG5wcG9wbm5wbm1vbm1wcG9wc3JydXV1d3V0dnV0dXV1dXNzdHNydXNydHJxc3FxdHJxdXRzdnV0d3V0d3d2eHl3eXp5enx6eoCAgIKEg4OFiIeHiY2MjI6QkJCTkJCSlpOVlpWTlpSTlJOUlY+OkZGOj4+PjY2OiYoAA==');
             const drawSound = new Audio('data:audio/wav;base64,UklGRnAAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YUIAAAB7d3p1dm9xbm1pZ21sYm9pZ29tbnZ0eH17gIGHhoqMj46QlpaWl5qZmZqcmZybmpuZmpqZmZiXlpeSkZONjgAA');
             const buttonSound = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=');
-
-            // Initialize settings
-            updateVolumeSettings();
-            difficultySelect.value = aiDifficulty;
-            player1NameInput.value = playerNames.player1;
-            player2NameInput.value = playerNames.player2;
-
-            // Set up theme toggle
-            if (localStorage.getItem('darkMode') === 'true') {
-                document.body.classList.add('dark-mode');
-                themeToggle.querySelector('.toggle-icon').textContent = '☀️';
-            }
-
-            // Initialize the active theme
-            const currentTheme = localStorage.getItem('colorTheme') || 'classic';
-            document.querySelectorAll('.theme-option').forEach(option => {
-                option.classList.remove('active');
-                if (option.dataset.theme === currentTheme) {
-                    option.classList.add('active');
-                }
+            
+            // Initialize game
+            initGame();
+            
+            // Event listeners
+            resetBtn.addEventListener('click', resetGame);
+            undoBtn.addEventListener('click', undoMove);
+            hintBtn.addEventListener('click', showHint);
+            playerNameBtn.addEventListener('click', showNamesModal);
+            playAgainBtn.addEventListener('click', resetGame);
+            saveNamesBtn.addEventListener('click', savePlayerNames);
+            themeToggle.addEventListener('click', toggleDarkMode);
+            volumeSlider.addEventListener('input', updateVolumeSettings);
+            difficultySelect.addEventListener('change', updateDifficulty);
+            
+            themeOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    themeOptions.forEach(opt => opt.classList.remove('border-2', 'border-white'));
+                    option.classList.add('border-2', 'border-white');
+                    currentTheme = option.dataset.theme;
+                    applyColorTheme(currentTheme);
+                    localStorage.setItem('colorTheme', currentTheme);
+                });
             });
-            applyColorTheme(currentTheme);
-
-            // Create the game board
+            
+            // Initialize functions
+            function initGame() {
+                loadSettings();
+                createBoard();
+                startTimer();
+                updateUI();
+            }
+            
             function createBoard() {
                 boardElement.innerHTML = '';
-
+                
+                // Create column overlays for dropping discs
                 for (let col = 0; col < COLS; col++) {
                     const columnOverlay = document.createElement('div');
-                    columnOverlay.className = 'column-overlay';
-                    columnOverlay.style.left = `${col * 76}px`;
+                    columnOverlay.className = 'absolute top-0 h-full flex justify-center';
+                    columnOverlay.style.width = 'calc(100% / 7)';
+                    columnOverlay.style.left = `${col * (100 / 7)}%`;
                     columnOverlay.dataset.col = col;
-
+                    
+                    // Preview disc
                     const previewDisc = document.createElement('div');
-                    previewDisc.className = 'preview-disc';
-                    previewDisc.classList.add(`player${currentPlayer}`);
+                    previewDisc.className = 'preview-disc absolute rounded-full w-12 h-12 -top-16 hidden';
+                    previewDisc.classList.add(`player${currentPlayer}-disc`);
                     columnOverlay.appendChild(previewDisc);
-
+                    
                     columnOverlay.addEventListener('mouseover', () => {
                         if (gameActive) {
                             previewDisc.style.display = 'block';
-                            previewDisc.className = 'preview-disc';
-                            previewDisc.classList.add(`player${currentPlayer}`);
+                            previewDisc.className = `preview-disc absolute rounded-full w-12 h-12 -top-16 player${currentPlayer}-disc`;
                             highlightColumn(col);
                         }
                     });
-
+                    
                     columnOverlay.addEventListener('mouseout', () => {
                         previewDisc.style.display = 'none';
-                        const cells = document.querySelectorAll(`.cell[data-col="${col}"]`);
-                        cells.forEach(cell => {
-                            cell.classList.remove('highlight-column');
-                        });
+                        removeColumnHighlight(col);
                     });
-
+                    
                     columnOverlay.addEventListener('click', () => {
-                        if (gameActive && !isAnimating && (currentPlayer === 1 || aiDifficulty === 0)) {
+                        if (gameActive && (currentPlayer === 1 || aiDifficulty === 0)) {
                             playSound(buttonSound);
                             dropDisc(col);
                         }
                     });
-
+                    
                     boardElement.appendChild(columnOverlay);
                 }
-
-                for (let col = 0; col < COLS; col++) {
-                    const column = document.createElement('div');
-                    column.className = 'column';
-
-                    for (let row = 0; row < ROWS; row++) {
+                
+                // Create game cells
+                for (let row = 0; row < ROWS; row++) {
+                    for (let col = 0; col < COLS; col++) {
                         const cell = document.createElement('div');
-                        cell.className = 'cell';
+                        cell.className = 'cell bg-gray-900 rounded-full w-12 h-12 flex items-center justify-center';
                         cell.dataset.row = row;
                         cell.dataset.col = col;
-
+                        
+                        // Create empty disc slot
                         const disc = document.createElement('div');
-                        disc.className = 'disc';
+                        disc.className = 'disc absolute rounded-full w-10 h-10 opacity-0';
                         disc.dataset.row = row;
                         disc.dataset.col = col;
-
+                        
                         cell.appendChild(disc);
-                        column.appendChild(cell);
+                        boardElement.appendChild(cell);
                     }
-
-                    boardElement.appendChild(column);
                 }
             }
-
+            
             function highlightColumn(col) {
                 const cells = document.querySelectorAll(`.cell[data-col="${col}"]`);
                 cells.forEach(cell => {
                     cell.classList.add('highlight-column');
                 });
             }
-
+            
+            function removeColumnHighlight(col) {
+                const cells = document.querySelectorAll(`.cell[data-col="${col}"]`);
+                cells.forEach(cell => {
+                    cell.classList.remove('highlight-column');
+                });
+            }
+            
             function dropDisc(col) {
-                if (isAnimating) return;
-                isAnimating = true;
-
+                // Find the lowest empty row in the column
                 let row = -1;
                 for (let r = ROWS - 1; r >= 0; r--) {
                     if (board[r][col] === 0) {
@@ -235,640 +391,609 @@
                         break;
                     }
                 }
-
-                if (row === -1) {
-                    isAnimating = false;
-                    return;
-                }
-
+                
+                // If column is full, do nothing
+                if (row === -1) return;
+                
+                // Update the board array
                 board[row][col] = currentPlayer;
+                
+                // Find the disc element to animate
                 const disc = document.querySelector(`.disc[data-row="${row}"][data-col="${col}"]`);
-                disc.classList.add(`player${currentPlayer}`);
-
-                const startTop = -((row + 1) * 68);
-                const finalTop = 0;
-
-                disc.style.transform = `translateY(${startTop}px)`;
-                disc.style.opacity = '1';
-
+                
+                // Set the disc color based on the current player
+                disc.classList.add(`player${currentPlayer}-disc`);
+                
+                // Add the move to history
                 moveHistory.push({ row, col, player: currentPlayer });
-
+                
+                // Play drop sound
                 playSound(dropSound);
-
+                
+                // Start the animation
+                disc.style.animation = 'none';
+                void disc.offsetWidth; // Trigger reflow
+                disc.style.animation = 'discDrop 0.5s forwards';
+                disc.style.opacity = '1';
+                
+                // Check for win or draw after animation completes
                 setTimeout(() => {
-                    disc.style.transform = `translateY(${finalTop}px)`;
-
-                    setTimeout(() => {
-                        disc.style.transform = 'translateY(-10px)';
+                    const isWin = checkWin(row, col, currentPlayer);
+                    const isDraw = checkDraw();
+                    
+                    if (isWin) {
+                        gameActive = false;
+                        clearInterval(gameTimer);
+                        highlightWinningCells(isWin);
+                        updateStats(`player${currentPlayer}Wins`);
+                        
+                        // Play win sound
+                        playSound(winSound);
+                        
+                        // Show confetti animation
+                        createConfetti();
+                        
                         setTimeout(() => {
-                            disc.style.transform = 'translateY(0)';
-
-                            const isWin = checkWin(row, col, currentPlayer);
-                            const isDraw = checkDraw();
-
-                            if (isWin) {
-                                gameActive = false;
-                                clearInterval(gameTimer);
-                                highlightWinningCells(isWin);
-                                updateStats(`player${currentPlayer}Wins`);
-                                playSound(winSound);
-                                createConfetti();
-
-                                setTimeout(() => {
-                                    modalTitle.textContent = `${playerNames['player' + currentPlayer]} Wins!`;
-                                    modalMessage.textContent = `Game completed in ${formatTime(gameTime)}`;
-                                    modalStats.textContent = `Current streak: ${getCurrentStreak()}`;
-                                    winModal.classList.add('active');
-                                }, 600);
-                            } else if (isDraw) {
-                                gameActive = false;
-                                clearInterval(gameTimer);
-                                updateStats('draws');
-                                playSound(drawSound);
-
-                                setTimeout(() => {
-                                    modalTitle.textContent = 'It\'s a Draw!';
-                                    modalMessage.textContent = `Game completed in ${formatTime(gameTime)}`;
-                                    modalStats.textContent = '';
-                                    winModal.classList.add('active');
-                                }, 600);
-                            } else {
-                                currentPlayer = currentPlayer === 1 ? 2 : 1;
-                                updateTurnInfo();
-                                if (aiDifficulty > 0 && currentPlayer === 2) {
-                                    setTimeout(() => aiMove(), 500);
-                                }
-                            }
-                            isAnimating = false;
-                        }, 100);
-                    }, 500);
-                }, 50);
+                            modalTitle.textContent = `${playerNames['player' + currentPlayer]} Wins!`;
+                            modalMessage.textContent = `Game completed in ${formatTime(gameTime)}`;
+                            modalStats.innerHTML = `
+                                <div class="mb-2">${getCurrentStreak()}</div>
+                                <div class="text-sm opacity-80">Best time: ${getBestTime()}</div>
+                            `;
+                            winModal.classList.remove('hidden');
+                        }, 600);
+                    } else if (isDraw) {
+                        gameActive = false;
+                        clearInterval(gameTimer);
+                        updateStats('draws');
+                        
+                        // Play draw sound
+                        playSound(drawSound);
+                        
+                        setTimeout(() => {
+                            modalTitle.textContent = 'Game Draw!';
+                            modalMessage.textContent = `Game completed in ${formatTime(gameTime)}`;
+                            modalStats.innerHTML = `
+                                <div class="text-sm opacity-80">Best time: ${getBestTime()}</div>
+                            `;
+                            winModal.classList.remove('hidden');
+                        }, 600);
+                    } else {
+                        // Switch players
+                        currentPlayer = currentPlayer === 1 ? 2 : 1;
+                        updateUI();
+                        
+                        // AI move if enabled and it's AI's turn
+                        if (aiDifficulty > 0 && currentPlayer === 2 && gameActive) {
+                            setTimeout(() => {
+                                makeAIMove();
+                            }, 500);
+                        }
+                    }
+                }, 500);
             }
-
+            
             function checkWin(row, col, player) {
-                const directions = [
-                    [0, 1],  // Horizontal
-                    [1, 0],  // Vertical
-                    [1, 1],  // Diagonal /
-                    [1, -1]  // Diagonal \
-                ];
-
-                for (const [dr, dc] of directions) {
-                    let count = 1;
-                    const winningCells = [[row, col]];
-
-                    // Check in positive direction
-                    for (let i = 1; i <= 3; i++) {
-                        const r = row + dr * i;
-                        const c = col + dc * i;
-                        if (r >= 0 && r < ROWS && c >= 0 && c < COLS && board[r][c] === player) {
-                            count++;
-                            winningCells.push([r, c]);
-                        } else {
-                            break;
-                        }
-                    }
-
-                    // Check in negative direction
-                    for (let i = 1; i <= 3; i++) {
-                        const r = row - dr * i;
-                        const c = col - dc * i;
-                        if (r >= 0 && r < ROWS && c >= 0 && c < COLS && board[r][c] === player) {
-                            count++;
-                            winningCells.push([r, c]);
-                        } else {
-                            break;
-                        }
-                    }
-
-                    if (count >= 4) {
-                        return winningCells;
-                    }
-                }
-
+                // Check horizontal
+                let count = 1;
+                // Left
+                for (let c = col - 1; c >= 0 && board[row][c] === player; c--) count++;
+                // Right
+                for (let c = col + 1; c < COLS && board[row][c] === player; c++) count++;
+                if (count >= 4) return [[row, col], [row, col + (count > 4 ? 3 : count - 1)]];
+                
+                // Check vertical
+                count = 1;
+                // Up
+                for (let r = row - 1; r >= 0 && board[r][col] === player; r--) count++;
+                // Down
+                for (let r = row + 1; r < ROWS && board[r][col] === player; r++) count++;
+                if (count >= 4) return [[row, col], [row + (count > 4 ? 3 : count - 1), col]];
+                
+                // Check diagonal (top-left to bottom-right)
+                count = 1;
+                // Top-left
+                for (let r = row - 1, c = col - 1; r >= 0 && c >= 0 && board[r][c] === player; r--, c--) count++;
+                // Bottom-right
+                for (let r = row + 1, c = col + 1; r < ROWS && c < COLS && board[r][c] === player; r++, c++) count++;
+                if (count >= 4) return [[row, col], [row + (count > 4 ? 3 : count - 1), col + (count > 4 ? 3 : count - 1)]];
+                
+                // Check diagonal (top-right to bottom-left)
+                count = 1;
+                // Top-right
+                for (let r = row - 1, c = col + 1; r >= 0 && c < COLS && board[r][c] === player; r--, c++) count++;
+                // Bottom-left
+                for (let r = row + 1, c = col - 1; r < ROWS && c >= 0 && board[r][c] === player; r++, c--) count++;
+                if (count >= 4) return [[row, col], [row + (count > 4 ? 3 : count - 1), col - (count > 4 ? 3 : count - 1)]];
+                
                 return false;
             }
-
+            
+            function highlightWinningCells(winCoords) {
+                const [start, end] = winCoords;
+                const [startRow, startCol] = start;
+                const [endRow, endCol] = end;
+                
+                // Determine direction of the win
+                const rowDiff = endRow - startRow;
+                const colDiff = endCol - startCol;
+                
+                for (let i = 0; i < 4; i++) {
+                    const row = startRow + (rowDiff !== 0 ? i * Math.sign(rowDiff) : 0);
+                    const col = startCol + (colDiff !== 0 ? i * Math.sign(colDiff) : 0);
+                    
+                    const disc = document.querySelector(`.disc[data-row="${row}"][data-col="${col}"]`);
+                    if (disc) {
+                        disc.classList.add('winning-disc');
+                    }
+                }
+            }
+            
             function checkDraw() {
-                return board.every(row => row.every(cell => cell !== 0));
+                return board[0].every(cell => cell !== 0);
             }
-
-            function highlightWinningCells(winningCells) {
-                for (const [row, col] of winningCells) {
-                    const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
-                    cell.classList.add('winning-cell');
-                }
-            }
-
-            function updateStats(result) {
-                stats[result]++;
-                player1WinsElem.textContent = `${playerNames.player1}: ${stats.player1Wins}`;
-                player2WinsElem.textContent = `${playerNames.player2}: ${stats.player2Wins}`;
-                drawsElem.textContent = `Draws: ${stats.draws}`;
-
-                // Update streak
-                if (result === 'player1Wins' || result === 'player2Wins') {
-                    const player = result === 'player1Wins' ? 1 : 2;
-                    if (currentStreak.player === player || currentStreak.player === 0) {
-                        currentStreak.player = player;
-                        currentStreak.count++;
-                    } else {
-                        currentStreak.player = player;
-                        currentStreak.count = 1;
-                    }
-                } else {
-                    currentStreak = { player: 0, count: 0 };
-                }
-
-                saveSettings();
-            }
-
-            function getCurrentStreak() {
-                if (currentStreak.count === 0) return 'None';
-                return `${playerNames['player' + currentStreak.player]}: ${currentStreak.count}`;
-            }
-
-            function updateTurnInfo() {
-                playerNameElem.textContent = playerNames['player' + currentPlayer];
-                playerNameElem.className = `player-name player${currentPlayer}`;
-                turnIndicator.className = `turn-indicator player${currentPlayer}`;
-                turnInfo.innerHTML = `<span id="player-name" class="player-name player${currentPlayer}">${playerNames['player' + currentPlayer]}</span>'s turn`;
-            }
-
-            function startTimer() {
-                gameStartTime = Date.now();
-                gameTime = 0;
-                clearInterval(gameTimer);
-                gameTimer = setInterval(() => {
-                    gameTime = Math.floor((Date.now() - gameStartTime) / 1000);
-                    timerElem.textContent = `Time: ${formatTime(gameTime)}`;
-                }, 1000);
-            }
-
-            function formatTime(seconds) {
-                const mins = Math.floor(seconds / 60);
-                const secs = seconds % 60;
-                return `${mins}:${secs.toString().padStart(2, '0')}`;
-            }
-
-            function playSound(sound) {
-                if (soundEnabled) {
-                    sound.volume = soundVolume;
-                    sound.currentTime = 0;
-                    sound.play();
-                }
-            }
-
-            function createConfetti() {
-                clearTimeout(confettiTimeout);
-                const colors = ['#f00', '#0f0', '#00f', '#ff0', '#f0f'];
-                for (let i = 0; i < 50; i++) {
-                    const confetti = document.createElement('div');
-                    confetti.className = 'confetti';
-                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                    confetti.style.left = `${Math.random() * 100}vw`;
-                    confetti.style.animationDuration = `${Math.random() * 2 + 1}s`;
-                    confetti.style.animationDelay = `${Math.random() * 0.5}s`;
-                    document.body.appendChild(confetti);
-
-                    setTimeout(() => {
-                        confetti.remove();
-                    }, 3000);
-                }
-                confettiTimeout = setTimeout(() => {}, 3000);
-            }
-
+            
             function resetGame() {
-                for (let r = 0; r < ROWS; r++) {
-                    for (let c = 0; c < COLS; c++) {
-                        board[r][c] = 0;
-                        const disc = document.querySelector(`.disc[data-row="${r}"][data-col="${c}"]`);
-                        if (disc) {
-                            disc.className = 'disc';
-                            disc.style.transform = 'translateY(0)';
-                            disc.style.opacity = '0';
-                            const cell = document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
-                            cell.classList.remove('winning-cell');
-                        }
-                    }
-                }
+                // Reset board
+                board = Array(ROWS).fill().map(() => Array(COLS).fill(0));
                 currentPlayer = 1;
                 gameActive = true;
                 moveHistory = [];
-                createBoard();
-                updateTurnInfo();
+                
+                // Reset timer
+                gameStartTime = Date.now();
+                clearInterval(gameTimer);
+                gameTime = 0;
                 startTimer();
-                winModal.classList.remove('active');
-                playSound(buttonSound);
+                
+                // Clear board UI
+                document.querySelectorAll('.disc').forEach(disc => {
+                    disc.className = 'disc absolute rounded-full w-10 h-10 opacity-0';
+                    disc.style.animation = '';
+                });
+                
+                // Hide modal
+                winModal.classList.add('hidden');
+                
+                // Update UI
+                updateUI();
             }
-
+            
             function undoMove() {
-                if (!gameActive || moveHistory.length === 0) return;
-
+                if (moveHistory.length === 0 || !gameActive) return;
+                
+                playSound(buttonSound);
+                
                 const lastMove = moveHistory.pop();
                 board[lastMove.row][lastMove.col] = 0;
+                
+                // Reset the disc
                 const disc = document.querySelector(`.disc[data-row="${lastMove.row}"][data-col="${lastMove.col}"]`);
-                disc.className = 'disc';
-                disc.style.transform = 'translateY(0)';
-                disc.style.opacity = '0';
-
+                disc.className = 'disc absolute rounded-full w-10 h-10 opacity-0';
+                disc.style.animation = '';
+                
+                // Switch back to previous player
                 currentPlayer = lastMove.player;
-                updateTurnInfo();
-                playSound(buttonSound);
-
-                if (aiDifficulty > 0 && moveHistory.length > 0 && moveHistory[moveHistory.length - 1].player === 2) {
-                    undoMove(); // Undo AI's move as well
+                
+                // If AI is enabled and we're undoing AI's move, undo one more move
+                if (aiDifficulty > 0 && currentPlayer === 2 && moveHistory.length > 0) {
+                    const aiMove = moveHistory.pop();
+                    board[aiMove.row][aiMove.col] = 0;
+                    
+                    const aiDisc = document.querySelector(`.disc[data-row="${aiMove.row}"][data-col="${aiMove.col}"]`);
+                    aiDisc.className = 'disc absolute rounded-full w-10 h-10 opacity-0';
+                    aiDisc.style.animation = '';
+                    
+                    currentPlayer = aiMove.player;
                 }
+                
+                updateUI();
             }
-
+            
             function showHint() {
-                if (!gameActive) return;
-
-                const bestCol = getBestMove(currentPlayer, aiDifficulty);
-                if (bestCol !== -1) {
-                    const cells = document.querySelectorAll(`.cell[data-col="${bestCol}"]`);
-                    cells.forEach(cell => {
-                        cell.classList.add('highlight-column');
-                    });
-
-                    clearTimeout(hintTimeout);
-                    hintTimeout = setTimeout(() => {
-                        cells.forEach(cell => {
-                            cell.classList.remove('highlight-column');
-                        });
-                    }, 2000);
-                }
+                if (!gameActive || currentPlayer !== 1 || aiDifficulty === 0) return;
+                
                 playSound(buttonSound);
+                
+                // Find the best move for the current player (1)
+                const bestMove = findBestMove(1);
+                if (bestMove.col !== undefined) {
+                    highlightColumn(bestMove.col);
+                    
+                    // Flash the column a few times
+                    let flashCount = 0;
+                    const flashInterval = setInterval(() => {
+                        const cells = document.querySelectorAll(`.cell[data-col="${bestMove.col}"]`);
+                        cells.forEach(cell => {
+                            cell.classList.toggle('highlight-column');
+                        });
+                        
+                        flashCount++;
+                        if (flashCount >= 6) {
+                            clearInterval(flashInterval);
+                            removeColumnHighlight(bestMove.col);
+                        }
+                    }, 300);
+                }
             }
-
-            function aiMove() {
-                if (!gameActive) return;
-
-                const col = getBestMove(2, aiDifficulty);
-                if (col !== -1) {
+            
+            function makeAIMove() {
+                if (!gameActive || currentPlayer !== 2) return;
+                
+                let col;
+                
+                switch (aiDifficulty) {
+                    case 1: // Easy AI - random move
+                        const availableCols = [];
+                        for (let c = 0; c < COLS; c++) {
+                            if (board[0][c] === 0) {
+                                availableCols.push(c);
+                            }
+                        }
+                        col = availableCols[Math.floor(Math.random() * availableCols.length)];
+                        break;
+                        
+                    case 2: // Medium AI - basic strategy
+                        // First check if AI can win
+                        for (let c = 0; c < COLS; c++) {
+                            const row = getFirstEmptyRow(c);
+                            if (row !== -1) {
+                                board[row][c] = 2;
+                                if (checkWin(row, c, 2)) {
+                                    board[row][c] = 0;
+                                    col = c;
+                                    break;
+                                }
+                                board[row][c] = 0;
+                            }
+                        }
+                        
+                        // Then check if player can win and block
+                        if (col === undefined) {
+                            for (let c = 0; c < COLS; c++) {
+                                const row = getFirstEmptyRow(c);
+                                if (row !== -1) {
+                                    board[row][c] = 1;
+                                    if (checkWin(row, c, 1)) {
+                                        board[row][c] = 0;
+                                        col = c;
+                                        break;
+                                    }
+                                    board[row][c] = 0;
+                                }
+                            }
+                        }
+                        
+                        // Otherwise make a strategic move
+                        if (col === undefined) {
+                            const centerCol = Math.floor(COLS / 2);
+                            if (board[0][centerCol] === 0) {
+                                col = centerCol;
+                            } else {
+                                // Choose a random column
+                                const availableCols = [];
+                                for (let c = 0; c < COLS; c++) {
+                                    if (board[0][c] === 0) {
+                                        availableCols.push(c);
+                                    }
+                                }
+                                col = availableCols[Math.floor(Math.random() * availableCols.length)];
+                            }
+                        }
+                        break;
+                        
+                    case 3: // Hard AI - minimax algorithm
+                        const bestMove = findBestMove(2);
+                        col = bestMove.col;
+                        break;
+                }
+                
+                if (col !== undefined) {
                     dropDisc(col);
                 }
             }
-
-            function getBestMove(player, difficulty) {
-                // Valid columns
-                const validCols = [];
-                for (let c = 0; c < COLS; c++) {
-                    if (board[0][c] === 0) validCols.push(c);
-                }
-
-                if (validCols.length === 0) return -1;
-
-                // Easy: Random move
-                if (difficulty === 1) {
-                    return validCols[Math.floor(Math.random() * validCols.length)];
-                }
-
-                // Medium: Try to win or block
-                if (difficulty >= 2) {
-                    // Check for winning move
-                    for (const col of validCols) {
-                        const row = getLowestEmptyRow(col);
-                        if (row !== -1) {
-                            board[row][col] = player;
-                            if (checkWin(row, col, player)) {
-                                board[row][col] = 0;
-                                return col;
-                            }
-                            board[row][col] = 0;
+            
+            function findBestMove(player) {
+                // Simple evaluation function
+                function evaluateBoard() {
+                    let score = 0;
+                    
+                    // Check horizontal
+                    for (let row = 0; row < ROWS; row++) {
+                        for (let col = 0; col < COLS - 3; col++) {
+                            const window = [board[row][col], board[row][col+1], board[row][col+2], board[row][col+3]];
+                            score += evaluateWindow(window, player);
                         }
                     }
-
-                    // Check for blocking opponent's win
+                    
+                    // Check vertical
+                    for (let col = 0; col < COLS; col++) {
+                        for (let row = 0; row < ROWS - 3; row++) {
+                            const window = [board[row][col], board[row+1][col], board[row+2][col], board[row+3][col]];
+                            score += evaluateWindow(window, player);
+                        }
+                    }
+                    
+                    // Check diagonal (top-left to bottom-right)
+                    for (let row = 0; row < ROWS - 3; row++) {
+                        for (let col = 0; col < COLS - 3; col++) {
+                            const window = [board[row][col], board[row+1][col+1], board[row+2][col+2], board[row+3][col+3]];
+                            score += evaluateWindow(window, player);
+                        }
+                    }
+                    
+                    // Check diagonal (top-right to bottom-left)
+                    for (let row = 0; row < ROWS - 3; row++) {
+                        for (let col = 3; col < COLS; col++) {
+                            const window = [board[row][col], board[row+1][col-1], board[row+2][col-2], board[row+3][col-3]];
+                            score += evaluateWindow(window, player);
+                        }
+                    }
+                    
+                    return score;
+                }
+                
+                function evaluateWindow(window, player) {
                     const opponent = player === 1 ? 2 : 1;
-                    for (const col of validCols) {
-                        const row = getLowestEmptyRow(col);
-                        if (row !== -1) {
-                            board[row][col] = opponent;
-                            if (checkWin(row, col, opponent)) {
-                                board[row][col] = 0;
-                                return col;
-                            }
-                            board[row][col] = 0;
-                        }
+                    let playerCount = 0;
+                    let opponentCount = 0;
+                    let emptyCount = 0;
+                    
+                    for (const cell of window) {
+                        if (cell === player) playerCount++;
+                        else if (cell === opponent) opponentCount++;
+                        else emptyCount++;
+                    }
+                    
+                    // Scoring
+                    if (playerCount === 4) return 100;
+                    else if (playerCount === 3 && emptyCount === 1) return 5;
+                    else if (playerCount === 2 && emptyCount === 2) return 2;
+                    else if (opponentCount === 3 && emptyCount === 1) return -4;
+                    else if (opponentCount === 4) return -100;
+                    
+                    return 0;
+                }
+                
+                // Get valid columns
+                const validCols = [];
+                for (let col = 0; col < COLS; col++) {
+                    if (board[0][col] === 0) {
+                        validCols.push(col);
                     }
                 }
-
-                // Hard: Minimax with limited depth
-                if (difficulty === 3) {
-                    let bestScore = -Infinity;
-                    let bestCol = validCols[0];
-
-                    for (const col of validCols) {
-                        const row = getLowestEmptyRow(col);
-                        if (row !== -1) {
-                            board[row][col] = player;
-                            const score = minimax(3, false, -Infinity, Infinity, player);
-                            board[row][col] = 0;
-                            if (score > bestScore) {
-                                bestScore = score;
-                                bestCol = col;
-                            }
-                        }
+                
+                // For each valid column, simulate the move and evaluate
+                let bestScore = -Infinity;
+                let bestCol = validCols[Math.floor(Math.random() * validCols.length)];
+                
+                for (const col of validCols) {
+                    const row = getFirstEmptyRow(col);
+                    board[row][col] = player;
+                    
+                    const score = evaluateBoard();
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestCol = col;
                     }
-                    return bestCol;
+                    
+                    board[row][col] = 0;
                 }
-
-                // Medium: Center preference or random
-                const centerCols = [3, 2, 4, 1, 5, 0, 6];
-                for (const col of centerCols) {
-                    if (validCols.includes(col)) {
-                        return col;
-                    }
-                }
-
-                return validCols[Math.floor(Math.random() * validCols.length)];
+                
+                return { col: bestCol, score: bestScore };
             }
-
-            function getLowestEmptyRow(col) {
-                for (let r = ROWS - 1; r >= 0; r--) {
-                    if (board[r][col] === 0) {
-                        return r;
+            
+            function getFirstEmptyRow(col) {
+                for (let row = ROWS - 1; row >= 0; row--) {
+                    if (board[row][col] === 0) {
+                        return row;
                     }
                 }
                 return -1;
             }
-
-            function minimax(depth, isMaximizing, alpha, beta, player) {
-                const opponent = player === 1 ? 2 : 1;
-
-                // Check for terminal states
-                for (let c = 0; c < COLS; c++) {
-                    const r = getLowestEmptyRow(c);
-                    if (r !== -1) {
-                        board[r][c] = player;
-                        if (checkWin(r, c, player)) {
-                            board[r][c] = 0;
-                            return isMaximizing ? 1000 : -1000;
-                        }
-                        board[r][c] = 0;
-
-                        board[r][c] = opponent;
-                        if (checkWin(r, c, opponent)) {
-                            board[r][c] = 0;
-                            return isMaximizing ? -1000 : 1000;
-                        }
-                        board[r][c] = 0;
+            
+            function startTimer() {
+                gameStartTime = Date.now();
+                gameTimer = setInterval(() => {
+                    gameTime = Math.floor((Date.now() - gameStartTime) / 1000);
+                    timerElem.querySelector('span').textContent = `${gameTime}s`;
+                }, 1000);
+            }
+            
+            function updateUI() {
+                // Update turn indicator
+                turnIndicator.className = `w-5 h-5 rounded-full animate-pulse ${currentPlayer === 1 ? 'bg-blue-500' : 'bg-red-500'}`;
+                playerNameElem.textContent = playerNames[`player${currentPlayer}`];
+                playerNameElem.className = currentPlayer === 1 ? 'text-blue-400' : 'text-red-400';
+                
+                // Update stats display
+                player1WinsElem.textContent = stats.player1Wins;
+                player2WinsElem.textContent = stats.player2Wins;
+                drawsElem.textContent = stats.draws;
+            }
+            
+            function updateStats(stat) {
+                stats[stat]++;
+                localStorage.setItem('connect4Stats', JSON.stringify(stats));
+                updateUI();
+                
+                // Update best time if this was a win
+                if (stat !== 'draws') {
+                    const bestTimeKey = `bestTime_${aiDifficulty}`;
+                    const bestTime = localStorage.getItem(bestTimeKey) || Infinity;
+                    if (gameTime < bestTime) {
+                        localStorage.setItem(bestTimeKey, gameTime);
                     }
-                }
-
-                if (checkDraw()) return 0;
-                if (depth === 0) return evaluateBoard(player);
-
-                const validCols = [];
-                for (let c = 0; c < COLS; c++) {
-                    if (board[0][c] === 0) validCols.push(c);
-                }
-
-                if (isMaximizing) {
-                    let value = -Infinity;
-                    for (const col of validCols) {
-                        const row = getLowestEmptyRow(col);
-                        if (row !== -1) {
-                            board[row][col] = player;
-                            value = Math.max(value, minimax(depth - 1, false, alpha, beta, player));
-                            board[row][col] = 0;
-                            alpha = Math.max(alpha, value);
-                            if (beta <= alpha) break;
-                        }
-                    }
-                    return value;
-                } else {
-                    let value = Infinity;
-                    for (const col of validCols) {
-                        const row = getLowestEmptyRow(col);
-                        if (row !== -1) {
-                            board[row][col] = opponent;
-                            value = Math.min(value, minimax(depth - 1, true, alpha, beta, player));
-                            board[row][col] = 0;
-                            beta = Math.min(beta, value);
-                            if (beta <= alpha) break;
-                        }
-                    }
-                    return value;
                 }
             }
-
-            function evaluateBoard(player) {
-                let score = 0;
-                const opponent = player === 1 ? 2 : 1;
-
-                // Center column preference
-                const centerCount = board.reduce((sum, row) => sum + (row[3] === player ? 1 : 0), 0);
-                score += centerCount * 3;
-
-                // Check for potential three-in-a-rows
-                for (let r = 0; r < ROWS; r++) {
-                    for (let c = 0; c < COLS; c++) {
-                        if (board[r][c] === player) {
-                            score += countPotentialThrees(r, c, player);
-                        } else if (board[r][c] === opponent) {
-                            score -= countPotentialThrees(r, c, opponent);
-                        }
-                    }
-                }
-
-                return score;
+            
+            function getBestTime() {
+                const bestTimeKey = `bestTime_${aiDifficulty}`;
+                const bestTime = localStorage.getItem(bestTimeKey);
+                return bestTime ? `${bestTime}s` : 'N/A';
             }
-
-            function countPotentialThrees(row, col, player) {
-                let score = 0;
-                const directions = [
-                    [0, 1], [1, 0], [1, 1], [1, -1]
-                ];
-
-                for (const [dr, dc] of directions) {
-                    let count = 1;
-                    let empty = 0;
-
-                    for (let i = 1; i <= 3; i++) {
-                        const r = row + dr * i;
-                        const c = col + dc * i;
-                        if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
-                            if (board[r][c] === player) {
-                                count++;
-                            } else if (board[r][c] === 0) {
-                                empty++;
-                            } else {
-                                break;
-                            }
-                        } else {
-                            break;
-                        }
-                    }
-
-                    for (let i = 1; i <= 3; i++) {
-                        const r = row - dr * i;
-                        const c = col - dc * i;
-                        if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
-                            if (board[r][c] === player) {
-                                count++;
-                            } else if (board[r][c] === 0) {
-                                empty++;
-                            } else {
-                                break;
-                            }
-                        } else {
-                            break;
-                        }
-                    }
-
-                    if (count === 3 && empty >= 1) {
-                        score += 50;
-                    } else if (count === 2 && empty >= 2) {
-                        score += 10;
-                    }
-                }
-
-                return score;
+            
+            function getCurrentStreak() {
+                const streakKey = `streak_${aiDifficulty}`;
+                const currentStreak = localStorage.getItem(streakKey) || 0;
+                const newStreak = parseInt(currentStreak) + 1;
+                localStorage.setItem(streakKey, newStreak);
+                return `Winning streak: ${newStreak}`;
             }
-
-            function saveSettings() {
-                localStorage.setItem('stats', JSON.stringify(stats));
+            
+            function formatTime(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+            }
+            
+            function createConfetti() {
+                const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'];
+                const boardRect = boardElement.getBoundingClientRect();
+                
+                for (let i = 0; i < 100; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = `${Math.random() * boardRect.width + boardRect.left}px`;
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                    confetti.style.width = `${Math.random() * 10 + 5}px`;
+                    confetti.style.height = `${Math.random() * 5 + 3}px`;
+                    
+                    document.body.appendChild(confetti);
+                    
+                    // Remove after animation
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 3000);
+                }
+            }
+            
+            function showNamesModal() {
+                playSound(buttonSound);
+                player1NameInput.value = playerNames.player1;
+                player2NameInput.value = playerNames.player2;
+                namesModal.classList.remove('hidden');
+            }
+            
+            function savePlayerNames() {
+                playSound(buttonSound);
+                playerNames.player1 = player1NameInput.value || 'Player 1';
+                playerNames.player2 = player2NameInput.value || 'Player 2';
                 localStorage.setItem('playerNames', JSON.stringify(playerNames));
-                localStorage.setItem('aiDifficulty', aiDifficulty);
-                localStorage.setItem('soundVolume', soundVolume);
-                localStorage.setItem('currentStreak', JSON.stringify(currentStreak));
+                namesModal.classList.add('hidden');
+                updateUI();
             }
-
+            
+            function toggleDarkMode() {
+                darkMode = !darkMode;
+                document.body.classList.toggle('bg-gray-900', darkMode);
+                document.body.classList.toggle('bg-gray-100', !darkMode);
+                document.body.classList.toggle('text-white', darkMode);
+                document.body.classList.toggle('text-gray-900', !darkMode);
+                
+                const icon = themeToggle.querySelector('i');
+                icon.classList.toggle('fa-moon', darkMode);
+                icon.classList.toggle('fa-sun', !darkMode);
+                
+                localStorage.setItem('darkMode', darkMode);
+            }
+            
+            function updateVolumeSettings() {
+                soundVolume = volumeSlider.value / 100;
+                localStorage.setItem('soundVolume', soundVolume);
+            }
+            
+            function updateDifficulty() {
+                aiDifficulty = parseInt(difficultySelect.value);
+                localStorage.setItem('aiDifficulty', aiDifficulty);
+                resetGame();
+            }
+            
+            function applyColorTheme(theme) {
+                const boardBg = document.querySelector('.board-bg');
+                
+                switch (theme) {
+                    case 'default':
+                        boardBg.className = 'board-bg rounded-2xl p-4 relative';
+                        boardBg.style.background = 'radial-gradient(circle at center, #1e40af 0%, #1e3a8a 100%)';
+                        break;
+                    case 'neon':
+                        boardBg.className = 'board-bg rounded-2xl p-4 relative';
+                        boardBg.style.background = 'radial-gradient(circle at center, #6d28d9 0%, #4c1d95 100%)';
+                        break;
+                    case 'ocean':
+                        boardBg.className = 'board-bg rounded-2xl p-4 relative';
+                        boardBg.style.background = 'radial-gradient(circle at center, #0891b2 0%, #155e75 100%)';
+                        break;
+                    case 'sunset':
+                        boardBg.className = 'board-bg rounded-2xl p-4 relative';
+                        boardBg.style.background = 'radial-gradient(circle at center, #ea580c 0%, #9a3412 100%)';
+                        break;
+                }
+            }
+            
+            function playSound(sound) {
+                if (soundEnabled) {
+                    sound.volume = soundVolume;
+                    sound.currentTime = 0;
+                    sound.play().catch(e => console.log('Sound playback prevented:', e));
+                }
+            }
+            
             function loadSettings() {
-                const savedStats = localStorage.getItem('stats');
-                if (savedStats) {
-                    stats = JSON.parse(savedStats);
-                    player1WinsElem.textContent = `${playerNames.player1}: ${stats.player1Wins}`;
-                    player2WinsElem.textContent = `${playerNames.player2}: ${stats.player2Wins}`;
-                    drawsElem.textContent = `Draws: ${stats.draws}`;
+                // Load dark mode
+                darkMode = localStorage.getItem('darkMode') === 'true';
+                if (darkMode) {
+                    document.body.classList.add('bg-gray-900');
+                    document.body.classList.add('text-white');
+                    const icon = themeToggle.querySelector('i');
+                    icon.classList.add('fa-moon');
+                } else {
+                    document.body.classList.add('bg-gray-100');
+                    document.body.classList.add('text-gray-900');
+                    const icon = themeToggle.querySelector('i');
+                    icon.classList.add('fa-sun');
                 }
-
-                const savedNames = localStorage.getItem('playerNames');
-                if (savedNames) {
-                    playerNames = JSON.parse(savedNames);
-                    player1NameInput.value = playerNames.player1;
-                    player2NameInput.value = playerNames.player2;
-                    updateTurnInfo();
-                }
-
-                const savedDifficulty = localStorage.getItem('aiDifficulty');
-                if (savedDifficulty) {
-                    aiDifficulty = parseInt(savedDifficulty);
-                    difficultySelect.value = aiDifficulty;
-                }
-
+                
+                // Load volume
                 const savedVolume = localStorage.getItem('soundVolume');
                 if (savedVolume) {
                     soundVolume = parseFloat(savedVolume);
                     volumeSlider.value = soundVolume * 100;
                 }
-
-                const savedStreak = localStorage.getItem('currentStreak');
-                if (savedStreak) {
-                    currentStreak = JSON.parse(savedStreak);
+                
+                // Load AI difficulty
+                const savedDifficulty = localStorage.getItem('aiDifficulty');
+                if (savedDifficulty) {
+                    aiDifficulty = parseInt(savedDifficulty);
+                    difficultySelect.value = aiDifficulty;
+                }
+                
+                // Load player names
+                const savedNames = localStorage.getItem('playerNames');
+                if (savedNames) {
+                    playerNames = JSON.parse(savedNames);
+                }
+                
+                // Load stats
+                const savedStats = localStorage.getItem('connect4Stats');
+                if (savedStats) {
+                    stats = JSON.parse(savedStats);
+                }
+                
+                // Load theme
+                const savedTheme = localStorage.getItem('colorTheme');
+                if (savedTheme) {
+                    currentTheme = savedTheme;
+                    applyColorTheme(currentTheme);
+                    themeOptions.forEach(option => {
+                        if (option.dataset.theme === currentTheme) {
+                            option.classList.add('border-2', 'border-white');
+                        }
+                    });
                 }
             }
-
-            function updateVolumeSettings() {
-                soundVolume = volumeSlider.value / 100;
-                soundEnabled = soundVolume > 0;
-                saveSettings();
-            }
-
-            function applyColorTheme(theme) {
-                const root = document.documentElement;
-                if (theme === 'neon') {
-                    root.style.setProperty('--player1', '#00ff00');
-                    root.style.setProperty('--player2', '#ff00ff');
-                    root.style.setProperty('--primary', '#00ff00');
-                    root.style.setProperty('--secondary', '#ff00ff');
-                } else if (theme === 'pastel') {
-                    root.style.setProperty('--player1', '#a5d8ff');
-                    root.style.setProperty('--player2', '#ffafcc');
-                    root.style.setProperty('--primary', '#a5d8ff');
-                    root.style.setProperty('--secondary', '#ffafcc');
-                } else if (theme === 'sunset') {
-                    root.style.setProperty('--player1', '#ff9a00');
-                    root.style.setProperty('--player2', '#ff005d');
-                    root.style.setProperty('--primary', '#ff9a00');
-                    root.style.setProperty('--secondary', '#ff005d');
-                } else {
-                    root.style.setProperty('--player1', '#3498db');
-                    root.style.setProperty('--player2', '#e74c3c');
-                    root.style.setProperty('--primary', '#3498db');
-                    root.style.setProperty('--secondary', '#e74c3c');
-                }
-                localStorage.setItem('colorTheme', theme);
-            }
-
-            // Event listeners
-            resetBtn.addEventListener('click', () => {
-                resetGame();
-            });
-
-            playAgainBtn.addEventListener('click', () => {
-                resetGame();
-            });
-
-            undoBtn.addEventListener('click', () => {
-                undoMove();
-            });
-
-            hintBtn.addEventListener('click', () => {
-                showHint();
-            });
-
-            playerNameBtn.addEventListener('click', () => {
-                namesModal.classList.add('active');
-                playSound(buttonSound);
-            });
-
-            saveNamesBtn.addEventListener('click', () => {
-                playerNames.player1 = player1NameInput.value.trim() || "Player 1";
-                playerNames.player2 = player2NameInput.value.trim() || "Player 2";
-                player1WinsElem.textContent = `${playerNames.player1}: ${stats.player1Wins}`;
-                player2WinsElem.textContent = `${playerNames.player2}: ${stats.player2Wins}`;
-                updateTurnInfo();
-                namesModal.classList.remove('active');
-                saveSettings();
-                playSound(buttonSound);
-            });
-
-            themeToggle.addEventListener('click', () => {
-                document.body.classList.toggle('dark-mode');
-                const isDark = document.body.classList.contains('dark-mode');
-                themeToggle.querySelector('.toggle-icon').textContent = isDark ? '☀️' : '🌙';
-                localStorage.setItem('darkMode', isDark);
-                playSound(buttonSound);
-            });
-
-            volumeSlider.addEventListener('input', () => {
-                updateVolumeSettings();
-                playSound(buttonSound);
-            });
-
-            difficultySelect.addEventListener('change', () => {
-                aiDifficulty = parseInt(difficultySelect.value);
-                saveSettings();
-                resetGame();
-                playSound(buttonSound);
-            });
-
-            themeOptions.forEach(option => {
-                option.addEventListener('click', () => {
-                    themeOptions.forEach(opt => opt.classList.remove('active'));
-                    option.classList.add('active');
-                    applyColorTheme(option.dataset.theme);
-                    playSound(buttonSound);
-                });
-            });
-
-            // Initialize game
-            createBoard();
-            startTimer();
-            updateTurnInfo();
         });
     </script>
 </body>
