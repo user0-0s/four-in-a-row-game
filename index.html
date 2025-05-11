@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quantum Connect 4</title>
+    <title>Four in a Row</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -35,9 +35,10 @@
             100% { transform: translateY(0px); }
         }
         
-        @keyframes stars {
-            from { transform: translateY(0); }
-            to { transform: translateY(-100vh); }
+        @keyframes cosmicWave {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
         
         @keyframes quantumPulse {
@@ -80,10 +81,12 @@
         
         .cell {
             transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.1);
         }
         
         .cell:hover {
             transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.3);
         }
         
         .player1-disc {
@@ -123,6 +126,11 @@
             background: white;
             border-radius: 50%;
             animation: stars linear infinite;
+        }
+        
+        @keyframes stars {
+            from { transform: translateY(0); }
+            to { transform: translateY(-100vh); }
         }
         
         .quantum-particle {
@@ -201,47 +209,53 @@
             box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2), 0 0 15px rgba(245, 158, 11, 0.5);
         }
         
-        .theme-matrix .board-bg {
-            background: radial-gradient(circle at center, #10b981 0%, #065f46 100%);
+        .theme-cosmic .board-bg {
+            background: linear-gradient(45deg, #1e3a8a, #4c1d95, #6b21a8, #1e40af);
+            background-size: 400%;
+            animation: cosmicWave 15s ease infinite;
         }
         
-        .theme-matrix .player1-disc {
-            background: radial-gradient(circle at 30% 30%, #6ee7b7, #10b981);
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2), 0 0 15px rgba(16, 185, 129, 0.7);
+        .theme-cosmic .player1-disc {
+            background: radial-gradient(circle at 30% 30%, #a5b4fc, #6366f1);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2), 0 0 15px rgba(99, 102, 241, 0.7);
         }
         
-        .theme-matrix .player2-disc {
+        .theme-cosmic .player2-disc {
             background: radial-gradient(circle at 30% 30%, #f9a8d4, #ec4899);
             box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2), 0 0 15px rgba(236, 72, 153, 0.7);
         }
         
-        .matrix-code {
+        .cosmic-particle {
             position: absolute;
-            color: rgba(16, 185, 129, 0.7);
-            font-family: monospace;
-            font-size: 14px;
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-            animation: matrixFall linear infinite;
-            text-shadow: 0 0 5px rgba(16, 185, 129, 0.7);
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            animation: cosmicFloat linear infinite;
         }
         
-        @keyframes matrixFall {
-            0% { transform: translateY(-100%); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translateY(100%); opacity: 0; }
+        @keyframes cosmicFloat {
+            0% { transform: translateY(0) scale(1); opacity: 0.8; }
+            50% { transform: translateY(-20vh) scale(1.2); opacity: 0.4; }
+            100% { transform: translateY(-40vh) scale(1); opacity: 0; }
         }
         
         .power-up-active {
             animation: pulse 0.5s infinite alternate;
+        }
+        
+        .btn-glow {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .btn-glow:hover {
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.8);
         }
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden">
     <!-- Background elements -->
     <div id="stars-container" class="fixed inset-0 overflow-hidden pointer-events-none"></div>
-    <div id="quantum-particles" class="fixed inset-0 overflow-hidden pointer-events-none"></div>
+    <div id="cosmic-particles" class="fixed inset-0 overflow-hidden pointer-events-none"></div>
     
     <!-- Settings Panel -->
     <div class="absolute top-4 right-4 bg-gray-800 bg-opacity-80 rounded-lg p-3 shadow-lg z-10 backdrop-blur-sm">
@@ -264,7 +278,7 @@
                     <option value="1">Easy AI</option>
                     <option value="2">Medium AI</option>
                     <option value="3">Hard AI</option>
-                    <option value="4">Quantum AI</option>
+                    <option value="4">Godlike AI</option>
                 </select>
             </div>
             
@@ -273,7 +287,7 @@
                 <div class="theme-option w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 cursor-pointer" data-theme="neon"></div>
                 <div class="theme-option w-6 h-6 rounded-full bg-gradient-to-br from-green-400 to-blue-500 cursor-pointer" data-theme="ocean"></div>
                 <div class="theme-option w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-red-500 cursor-pointer" data-theme="sunset"></div>
-                <div class="theme-option w-6 h-6 rounded-full bg-gradient-to-br from-emerald-500 to-pink-500 cursor-pointer" data-theme="matrix"></div>
+                <div class="theme-option w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 cursor-pointer" data-theme="cosmic"></div>
             </div>
         </div>
     </div>
@@ -281,7 +295,7 @@
     <!-- Main Game Container -->
     <div class="max-w-4xl w-full flex flex-col items-center relative z-10">
         <h1 class="text-5xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 glow">
-            Quantum Connect 4
+            Four in a Row
         </h1>
         
         <div class="flex items-center justify-center space-x-6 mb-4">
@@ -299,9 +313,6 @@
             
             <div id="power-ups" class="hidden">
                 <div class="flex space-x-2">
-                    <div id="double-move" class="power-up bg-yellow-500 text-black px-2 py-1 rounded-full text-xs cursor-pointer" title="Double Move">
-                        <i class="fas fa-forward mr-1"></i>2x
-                    </div>
                     <div id="column-blast" class="power-up bg-red-500 text-white px-2 py-1 rounded-full text-xs cursor-pointer" title="Column Blast">
                         <i class="fas fa-bomb mr-1"></i>Blast
                     </div>
@@ -322,19 +333,19 @@
         </div>
         
         <div class="flex space-x-3 mb-6">
-            <button id="reset-btn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors floating-btn">
+            <button id="reset-btn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors floating-btn btn-glow">
                 <i class="fas fa-sync-alt mr-2"></i>New Game
             </button>
-            <button id="undo-btn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors">
+            <button id="undo-btn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors btn-glow">
                 <i class="fas fa-undo mr-2"></i>Undo
             </button>
-            <button id="hint-btn" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors">
+            <button id="hint-btn" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors btn-glow">
                 <i class="fas fa-lightbulb mr-2"></i>Hint
             </button>
-            <button id="player-names-btn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors">
+            <button id="player-names-btn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors btn-glow">
                 <i class="fas fa-users mr-2"></i>Names
             </button>
-            <button id="power-ups-btn" class="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded-lg transition-colors">
+            <button id="power-ups-btn" class="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded-lg transition-colors btn-glow">
                 <i class="fas fa-bolt mr-2"></i>Power-ups
             </button>
         </div>
@@ -359,7 +370,7 @@
             <h2 id="modal-title" class="text-3xl font-bold mb-2 text-center"></h2>
             <p id="modal-message" class="text-center mb-6"></p>
             <div id="modal-stats" class="text-center mb-6"></div>
-            <button id="play-again-btn" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-lg font-medium transition-colors">
+            <button id="play-again-btn" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-lg font-medium transition-colors btn-glow">
                 Play Again
             </button>
         </div>
@@ -379,7 +390,7 @@
                     <input type="text" id="player2-name" class="w-full bg-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
             </div>
-            <button id="save-names-btn" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-lg font-medium transition-colors">
+            <button id="save-names-btn" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-lg font-medium transition-colors btn-glow">
                 Save Names
             </button>
         </div>
@@ -390,28 +401,18 @@
         <div class="bg-gray-800 rounded-xl p-8 max-w-md w-full modal-enter">
             <h2 class="text-2xl font-bold mb-6 text-center">Power-ups</h2>
             <div class="grid grid-cols-2 gap-4 mb-6">
-                <div class="power-up bg-yellow-500 text-black p-4 rounded-lg cursor-pointer flex flex-col items-center" data-power="double">
-                    <i class="fas fa-forward text-2xl mb-2"></i>
-                    <h3 class="font-bold">Double Move</h3>
-                    <p class="text-xs text-center">Place two discs in one turn</p>
-                </div>
                 <div class="power-up bg-red-500 text-white p-4 rounded-lg cursor-pointer flex flex-col items-center" data-power="blast">
                     <i class="fas fa-bomb text-2xl mb-2"></i>
                     <h3 class="font-bold">Column Blast</h3>
                     <p class="text-xs text-center">Clear an entire column</p>
                 </div>
-                <div class="power-up bg-purple-500 text-white p-4 rounded-lg cursor-pointer flex flex-col items-center" data-power="gravity">
-                    <i class="fas fa-magnet text-2xl mb-2"></i>
-                    <h3 class="font-bold">Gravity Shift</h3>
-                    <p class="text-xs text-center">Change gravity direction</p>
-                </div>
                 <div class="power-up bg-green-500 text-white p-4 rounded-lg cursor-pointer flex flex-col items-center" data-power="swap">
                     <i class="fas fa-random text-2xl mb-2"></i>
                     <h3 class="font-bold">Quantum Swap</h3>
                     <p class="text-xs text-center">Swap positions with opponent</p>
-                </div>
+                </..../>
             </div>
-            <button id="close-power-ups-btn" class="w-full bg-gray-700 hover:bg-gray-600 py-3 rounded-lg font-medium transition-colors">
+            <button id="close-power-ups-btn" class="w-full bg-gray-700 hover:bg-gray-600 py-3 rounded-lg font-medium transition-colors btn-glow">
                 Close
             </button>
         </div>
@@ -422,6 +423,7 @@
             // Game constants
             const ROWS = 6;
             const COLS = 7;
+            const MAX_DEPTH = 8; // Increased depth for AI
             
             // Game state
             let board = Array(ROWS).fill().map(() => Array(COLS).fill(0));
@@ -442,12 +444,11 @@
             };
             let soundEnabled = true;
             let soundVolume = 0.7;
-            let aiDifficulty = 0; // 0 = off, 1 = easy, 2 = medium, 3 = hard, 4 = quantum
+            let aiDifficulty = 0; // 0 = off, 1 = easy, 2 = medium, 3 = hard, 4 = godlike
             let darkMode = true;
             let currentTheme = 'default';
             let activePowerUps = [];
             let powerUpCooldown = false;
-            let gravityDirection = 'down'; // 'down', 'up', 'left', 'right'
             
             // DOM elements
             const boardElement = document.getElementById('board');
@@ -480,7 +481,7 @@
             const powerUpsContainer = document.getElementById('power-ups');
             const quantumOverlay = document.getElementById('quantum-overlay');
             const starsContainer = document.getElementById('stars-container');
-            const quantumParticles = document.getElementById('quantum-particles');
+            const cosmicParticles = document.getElementById('cosmic-particles');
             const themeOptions = document.querySelectorAll('.theme-option');
             
             // Audio elements
@@ -489,7 +490,6 @@
             const drawSound = new Audio('data:audio/wav;base64,UklGRnAAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YUIAAAB7d3p1dm9xbm1pZ21sYm9pZ29tbnZ0eH17gIGHhoqMj46QlpaWl5qZmZqcmZybmpuZmpqZmZiXlpeSkZONjgAA');
             const buttonSound = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=');
             const powerUpSound = new Audio('data:audio/wav;base64,UklGRlQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=');
-            const quantumSound = new Audio('data:audio/wav;base64,UklGRlQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=');
             
             // Initialize game
             initGame();
@@ -514,20 +514,13 @@
                     currentTheme = option.dataset.theme;
                     applyColorTheme(currentTheme);
                     localStorage.setItem('colorTheme', currentTheme);
-                    
-                    // Special effects for matrix theme
-                    if (currentTheme === 'matrix') {
-                        createMatrixCode();
-                    } else {
-                        clearMatrixCode();
-                    }
                 });
             });
             
             // Initialize functions
             function initGame() {
                 createStars();
-                createQuantumParticles();
+                createCosmicParticles();
                 loadSettings();
                 createBoard();
                 startTimer();
@@ -535,98 +528,42 @@
             }
             
             function createStars() {
-                // Clear existing stars
                 starsContainer.innerHTML = '';
-                
-                // Create stars
-                for (let i = 0; i < 100; i++) {
+                for (let i = 0; i < 150; i++) {
                     const star = document.createElement('div');
                     star.className = 'star';
-                    
-                    // Random size between 1-3px
                     const size = Math.random() * 2 + 1;
                     star.style.width = `${size}px`;
                     star.style.height = `${size}px`;
-                    
-                    // Random position
                     star.style.left = `${Math.random() * 100}%`;
                     star.style.top = `${Math.random() * 100}%`;
-                    
-                    // Random opacity
-                    star.style.opacity = Math.random();
-                    
-                    // Random animation duration
-                    const duration = Math.random() * 10 + 5;
+                    star.style.opacity = Math.random() * 0.8 + 0.2;
+                    const duration = Math.random() * 8 + 4;
                     star.style.animationDuration = `${duration}s`;
-                    
                     starsContainer.appendChild(star);
                 }
             }
             
-            function createQuantumParticles() {
-                // Clear existing particles
-                quantumParticles.innerHTML = '';
-                
-                // Create quantum particles
-                for (let i = 0; i < 5; i++) {
+            function createCosmicParticles() {
+                cosmicParticles.innerHTML = '';
+                for (let i = 0; i < 20; i++) {
                     const particle = document.createElement('div');
-                    particle.className = 'quantum-particle';
-                    
-                    // Random position
+                    particle.className = 'cosmic-particle';
+                    const size = Math.random() * 20 + 10;
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
                     particle.style.left = `${Math.random() * 100}%`;
                     particle.style.top = `${Math.random() * 100}%`;
-                    
-                    // Random animation duration
-                    const duration = Math.random() * 5 + 3;
-                    particle.style.animationDuration = `${duration}s`;
-                    
-                    quantumParticles.appendChild(particle);
-                }
-            }
-            
-            function createMatrixCode() {
-                // Clear existing code
-                const existingCode = document.querySelectorAll('.matrix-code');
-                existingCode.forEach(code => code.remove());
-                
-                // Create matrix code rain
-                const characters = "01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン";
-                
-                for (let i = 0; i < 20; i++) {
-                    const code = document.createElement('div');
-                    code.className = 'matrix-code';
-                    
-                    // Random position
-                    code.style.left = `${Math.random() * 100}%`;
-                    
-                    // Random animation duration
                     const duration = Math.random() * 10 + 5;
-                    code.style.animationDuration = `${duration}s`;
-                    
-                    // Random delay
-                    code.style.animationDelay = `${Math.random() * 5}s`;
-                    
-                    // Generate random characters
-                    let text = '';
-                    const length = Math.floor(Math.random() * 10) + 5;
-                    for (let j = 0; j < length; j++) {
-                        text += characters.charAt(Math.floor(Math.random() * characters.length)) + '\n';
-                    }
-                    code.textContent = text;
-                    
-                    document.body.appendChild(code);
+                    particle.style.animationDuration = `${duration}s`;
+                    particle.style.animationDelay = `${Math.random() * 5}s`;
+                    cosmicParticles.appendChild(particle);
                 }
-            }
-            
-            function clearMatrixCode() {
-                const existingCode = document.querySelectorAll('.matrix-code');
-                existingCode.forEach(code => code.remove());
             }
             
             function createBoard() {
                 boardElement.innerHTML = '';
                 
-                // Create column overlays for dropping discs
                 for (let col = 0; col < COLS; col++) {
                     const columnOverlay = document.createElement('div');
                     columnOverlay.className = 'absolute top-0 h-full flex justify-center';
@@ -634,7 +571,6 @@
                     columnOverlay.style.left = `${col * (100 / 7)}%`;
                     columnOverlay.dataset.col = col;
                     
-                    // Preview disc
                     const previewDisc = document.createElement('div');
                     previewDisc.className = 'preview-disc absolute rounded-full w-12 h-12 -top-16 hidden';
                     previewDisc.classList.add(`player${currentPlayer}-disc`);
@@ -663,7 +599,6 @@
                     boardElement.appendChild(columnOverlay);
                 }
                 
-                // Create game cells
                 for (let row = 0; row < ROWS; row++) {
                     for (let col = 0; col < COLS; col++) {
                         const cell = document.createElement('div');
@@ -671,7 +606,6 @@
                         cell.dataset.row = row;
                         cell.dataset.col = col;
                         
-                        // Create empty disc slot
                         const disc = document.createElement('div');
                         disc.className = 'disc absolute rounded-full w-10 h-10 opacity-0';
                         disc.dataset.row = row;
@@ -698,7 +632,6 @@
             }
             
             function dropDisc(col) {
-                // Find the lowest empty row in the column
                 let row = -1;
                 for (let r = ROWS - 1; r >= 0; r--) {
                     if (board[r][col] === 0) {
@@ -707,31 +640,18 @@
                     }
                 }
                 
-                // If column is full, do nothing
                 if (row === -1) return;
                 
-                // Update the board array
                 board[row][col] = currentPlayer;
-                
-                // Find the disc element to animate
                 const disc = document.querySelector(`.disc[data-row="${row}"][data-col="${col}"]`);
-                
-                // Set the disc color based on the current player
                 disc.classList.add(`player${currentPlayer}-disc`);
-                
-                // Add the move to history
                 moveHistory.push({ row, col, player: currentPlayer });
-                
-                // Play drop sound
                 playSound(dropSound);
-                
-                // Start the animation
                 disc.style.animation = 'none';
-                void disc.offsetWidth; // Trigger reflow
+                void disc.offsetWidth;
                 disc.style.animation = 'discDrop 0.5s forwards';
                 disc.style.opacity = '1';
                 
-                // Check for win or draw after animation completes
                 setTimeout(() => {
                     const isWin = checkWin(row, col, currentPlayer);
                     const isDraw = checkDraw();
@@ -741,11 +661,7 @@
                         clearInterval(gameTimer);
                         highlightWinningCells(isWin);
                         updateStats(`player${currentPlayer}Wins`);
-                        
-                        // Play win sound
                         playSound(winSound);
-                        
-                        // Show confetti animation
                         createConfetti();
                         
                         setTimeout(() => {
@@ -761,8 +677,6 @@
                         gameActive = false;
                         clearInterval(gameTimer);
                         updateStats('draws');
-                        
-                        // Play draw sound
                         playSound(drawSound);
                         
                         setTimeout(() => {
@@ -774,11 +688,9 @@
                             winModal.classList.remove('hidden');
                         }, 600);
                     } else {
-                        // Switch players
                         currentPlayer = currentPlayer === 1 ? 2 : 1;
                         updateUI();
                         
-                        // AI move if enabled and it's AI's turn
                         if (aiDifficulty > 0 && currentPlayer === 2 && gameActive) {
                             setTimeout(() => {
                                 makeAIMove();
@@ -789,35 +701,23 @@
             }
             
             function checkWin(row, col, player) {
-                // Check horizontal
                 let count = 1;
-                // Left
                 for (let c = col - 1; c >= 0 && board[row][c] === player; c--) count++;
-                // Right
                 for (let c = col + 1; c < COLS && board[row][c] === player; c++) count++;
                 if (count >= 4) return [[row, col], [row, col + (count > 4 ? 3 : count - 1)]];
                 
-                // Check vertical
                 count = 1;
-                // Up
                 for (let r = row - 1; r >= 0 && board[r][col] === player; r--) count++;
-                // Down
                 for (let r = row + 1; r < ROWS && board[r][col] === player; r++) count++;
                 if (count >= 4) return [[row, col], [row + (count > 4 ? 3 : count - 1), col]];
                 
-                // Check diagonal (top-left to bottom-right)
                 count = 1;
-                // Top-left
                 for (let r = row - 1, c = col - 1; r >= 0 && c >= 0 && board[r][c] === player; r--, c--) count++;
-                // Bottom-right
                 for (let r = row + 1, c = col + 1; r < ROWS && c < COLS && board[r][c] === player; r++, c++) count++;
                 if (count >= 4) return [[row, col], [row + (count > 4 ? 3 : count - 1), col + (count > 4 ? 3 : count - 1)]];
                 
-                // Check diagonal (top-right to bottom-left)
                 count = 1;
-                // Top-right
                 for (let r = row - 1, c = col + 1; r >= 0 && c < COLS && board[r][c] === player; r--, c++) count++;
-                // Bottom-left
                 for (let r = row + 1, c = col - 1; r < ROWS && c >= 0 && board[r][c] === player; r++, c--) count++;
                 if (count >= 4) return [[row, col], [row + (count > 4 ? 3 : count - 1), col - (count > 4 ? 3 : count - 1)]];
                 
@@ -829,7 +729,6 @@
                 const [startRow, startCol] = start;
                 const [endRow, endCol] = end;
                 
-                // Determine direction of the win
                 const rowDiff = endRow - startRow;
                 const colDiff = endCol - startCol;
                 
@@ -850,33 +749,24 @@
             
             function resetGame() {
                 playSound(buttonSound);
-                
-                // Reset board
                 board = Array(ROWS).fill().map(() => Array(COLS).fill(0));
                 currentPlayer = 1;
                 gameActive = true;
                 moveHistory = [];
                 activePowerUps = [];
                 powerUpCooldown = false;
-                gravityDirection = 'down';
-                
-                // Reset timer
                 gameStartTime = Date.now();
                 clearInterval(gameTimer);
                 gameTime = 0;
                 startTimer();
                 
-                // Clear board UI
                 document.querySelectorAll('.disc').forEach(disc => {
                     disc.className = 'disc absolute rounded-full w-10 h-10 opacity-0';
                     disc.style.animation = '';
                 });
                 
-                // Hide modal
                 winModal.classList.add('hidden');
                 powerUpsContainer.classList.add('hidden');
-                
-                // Update UI
                 updateUI();
             }
             
@@ -884,27 +774,21 @@
                 if (moveHistory.length === 0 || !gameActive) return;
                 
                 playSound(buttonSound);
-                
                 const lastMove = moveHistory.pop();
                 board[lastMove.row][lastMove.col] = 0;
                 
-                // Reset the disc
                 const disc = document.querySelector(`.disc[data-row="${lastMove.row}"][data-col="${lastMove.col}"]`);
                 disc.className = 'disc absolute rounded-full w-10 h-10 opacity-0';
                 disc.style.animation = '';
                 
-                // Switch back to previous player
                 currentPlayer = lastMove.player;
                 
-                // If AI is enabled and we're undoing AI's move, undo one more move
                 if (aiDifficulty > 0 && currentPlayer === 2 && moveHistory.length > 0) {
                     const aiMove = moveHistory.pop();
                     board[aiMove.row][aiMove.col] = 0;
-                    
                     const aiDisc = document.querySelector(`.disc[data-row="${aiMove.row}"][data-col="${aiMove.col}"]`);
                     aiDisc.className = 'disc absolute rounded-full w-10 h-10 opacity-0';
                     aiDisc.style.animation = '';
-                    
                     currentPlayer = aiMove.player;
                 }
                 
@@ -915,20 +799,15 @@
                 if (!gameActive || currentPlayer !== 1 || aiDifficulty === 0) return;
                 
                 playSound(buttonSound);
-                
-                // Find the best move for the current player (1)
                 const bestMove = findBestMove(1);
                 if (bestMove.col !== undefined) {
                     highlightColumn(bestMove.col);
-                    
-                    // Flash the column a few times
                     let flashCount = 0;
                     const flashInterval = setInterval(() => {
                         const cells = document.querySelectorAll(`.cell[data-col="${bestMove.col}"]`);
                         cells.forEach(cell => {
                             cell.classList.toggle('highlight-column');
                         });
-                        
                         flashCount++;
                         if (flashCount >= 6) {
                             clearInterval(flashInterval);
@@ -944,7 +823,7 @@
                 let col;
                 
                 switch (aiDifficulty) {
-                    case 1: // Easy AI - random move
+                    case 1: // Easy AI
                         const availableCols = [];
                         for (let c = 0; c < COLS; c++) {
                             if (board[0][c] === 0) {
@@ -953,9 +832,57 @@
                         }
                         col = availableCols[Math.floor(Math.random() * availableCols.length)];
                         break;
-                                        
-                    case 2: // Medium AI - basic strategy
-                        // First check if AI can win
+                    
+                    case 2: // Medium AI
+                        for (let c = 0; c < COLS; c++) {
+                            const row = getFirstEmptyRow(c);
+                            if (row !== -1) {
+                                board[row][c] = 2;
+                                if (checkWin(row, c, 2)) {
+                                    board[row][c] = 0;
+                                    col = c;
+                                    break;
+                                }
+                                board[row][c] = 0;
+                            }
+                        }
+                        if (col === undefined) {
+                            for (let c = 0; c < COLS; c++) {
+                                const row = getFirstEmptyRow(c);
+                                if (row !== -1) {
+                                    board[row][c] = 1;
+                                    if (checkWin(row, c, 1)) {
+                                        board[row][c] = 0;
+                                        col = c;
+                                        break;
+                                    }
+                                    board[row][c] = 0;
+                                }
+                            }
+                        }
+                        if (col === undefined) {
+                            const centerCol = Math.floor(COLS / 2);
+                            if (board[0][centerCol] === 0) {
+                                col = centerCol;
+                            } else {
+                                const availableCols = [];
+                                for (let c = 0; c < COLS; c++) {
+                                    if (board[0][c] === 0) {
+                                        availableCols.push(c);
+                                    }
+                                }
+                                col = availableCols[Math.floor(Math.random() * availableCols.length)];
+                            }
+                        }
+                        break;
+                    
+                    case 3: // Hard AI
+                        const bestMove = minimax(board, MAX_DEPTH - 2, -Infinity, Infinity, 2);
+                        col = bestMove.col;
+                        break;
+                    
+                    case 4: // Godlike AI
+                        // Check for immediate win
                         for (let c = 0; c < COLS; c++) {
                             const row = getFirstEmptyRow(c);
                             if (row !== -1) {
@@ -969,7 +896,7 @@
                             }
                         }
                         
-                        // Then check if player can win and block
+                        // Check for immediate block
                         if (col === undefined) {
                             for (let c = 0; c < COLS; c++) {
                                 const row = getFirstEmptyRow(c);
@@ -985,66 +912,28 @@
                             }
                         }
                         
-                        // Otherwise make a strategic move
-                        if (col === undefined) {
-                            const centerCol = Math.floor(COLS / 2);
-                            if (board[0][centerCol] === 0) {
-                                col = centerCol;
-                            } else {
-                                // Choose a random column
-                                const availableCols = [];
-                                for (let c = 0; c < COLS; c++) {
-                                    if (board[0][c] === 0) {
-                                        availableCols.push(c);
-                                    }
-                                }
-                                col = availableCols[Math.floor(Math.random() * availableCols.length)];
-                            }
-                        }
-                        break;
-                                        
-                    case 3: // Hard AI - minimax algorithm
-                        const bestMove = findBestMove(2);
-                        col = bestMove.col;
-                        break;
-                                        
-                    case 4: // Quantum AI - advanced with special moves
-                        // 30% chance to use a power-up if available
-                        if (Math.random() < 0.3) {
-                            // Try to use column blast if player is about to win
+                        // Use power-up strategically
+                        if (col === undefined && Math.random() < 0.5 && !powerUpCooldown) {
                             for (let c = 0; c < COLS; c++) {
                                 const row = getFirstEmptyRow(c);
                                 if (row !== -1) {
                                     board[row][c] = 1;
                                     if (checkWin(row, c, 1)) {
                                         board[row][c] = 0;
-                                        // Use column blast to prevent win
                                         useColumnBlast(c);
                                         return;
                                     }
                                     board[row][c] = 0;
                                 }
                             }
-                            
-                            // Otherwise use double move
-                            const bestMove = findBestMove(2);
-                            if (bestMove.col !== undefined) {
-                                dropDisc(bestMove.col);
-                                setTimeout(() => {
-                                    const secondBest = findBestMove(2);
-                                    if (secondBest.col !== undefined) {
-                                        dropDisc(secondBest.col);
-                                    }
-                                }, 300);
-                                return;
-                            }
                         }
                         
-                        // Fall back to minimax if no power-ups used
-                        const hardMove = findBestMove(2);
-                        col = hardMove.col;
+                        // Use advanced minimax with deeper search and heuristics
+                        if (col === undefined) {
+                            const bestMove = minimax(board, MAX_DEPTH, -Infinity, Infinity, 2);
+                            col = bestMove.col;
+                        }
                         
-                        // Show quantum effect
                         quantumOverlay.style.opacity = '0.3';
                         setTimeout(() => {
                             quantumOverlay.style.opacity = '0';
@@ -1057,69 +946,7 @@
                 }
             }
             
-            function findBestMove(player) {
-                // Simple evaluation function
-                function evaluateBoard() {
-                    let score = 0;
-                    
-                    // Check horizontal
-                    for (let row = 0; row < ROWS; row++) {
-                        for (let col = 0; col < COLS - 3; col++) {
-                            const window = [board[row][col], board[row][col+1], board[row][col+2], board[row][col+3]];
-                            score += evaluateWindow(window, player);
-                        }
-                    }
-                    
-                    // Check vertical
-                    for (let col = 0; col < COLS; col++) {
-                        for (let row = 0; row < ROWS - 3; row++) {
-                            const window = [board[row][col], board[row+1][col], board[row+2][col], board[row+3][col]];
-                            score += evaluateWindow(window, player);
-                        }
-                    }
-                    
-                    // Check diagonal (top-left to bottom-right)
-                    for (let row = 0; row < ROWS - 3; row++) {
-                        for (let col = 0; col < COLS - 3; col++) {
-                            const window = [board[row][col], board[row+1][col+1], board[row+2][col+2], board[row+3][col+3]];
-                            score += evaluateWindow(window, player);
-                        }
-                    }
-                    
-                    // Check diagonal (top-right to bottom-left)
-                    for (let row = 0; row < ROWS - 3; row++) {
-                        for (let col = 3; col < COLS; col++) {
-                            const window = [board[row][col], board[row+1][col-1], board[row+2][col-2], board[row+3][col-3]];
-                            score += evaluateWindow(window, player);
-                        }
-                    }
-                    
-                    return score;
-                }
-                
-                function evaluateWindow(window, player) {
-                    const opponent = player === 1 ? 2 : 1;
-                    let playerCount = 0;
-                    let opponentCount = 0;
-                    let emptyCount = 0;
-                    
-                    for (const cell of window) {
-                        if (cell === player) playerCount++;
-                        else if (cell === opponent) opponentCount++;
-                        else emptyCount++;
-                    }
-                    
-                    // Scoring
-                    if (playerCount === 4) return 100;
-                    else if (playerCount === 3 && emptyCount === 1) return 5;
-                    else if (playerCount === 2 && emptyCount === 2) return 2;
-                    else if (opponentCount === 3 && emptyCount === 1) return -4;
-                    else if (opponentCount === 4) return -100;
-                    
-                    return 0;
-                }
-                
-                // Get valid columns
+            function minimax(board, depth, alpha, beta, player) {
                 const validCols = [];
                 for (let col = 0; col < COLS; col++) {
                     if (board[0][col] === 0) {
@@ -1127,24 +954,139 @@
                     }
                 }
                 
-                // For each valid column, simulate the move and evaluate
-                let bestScore = -Infinity;
-                let bestCol = validCols[Math.floor(Math.random() * validCols.length)];
+                // Check for terminal states
+                for (const col of validCols) {
+                    const row = getFirstEmptyRow(col);
+                    board[row][col] = player;
+                    if (checkWin(row, col, player)) {
+                        board[row][col] = 0;
+                        return { score: player === 2 ? 1000000 : -1000000, col };
+                    }
+                    board[row][col] = 0;
+                }
+                
+                if (validCols.length === 0 || depth === 0) {
+                    return { score: evaluateBoard(board, 2), col: validCols[0] };
+                }
+                
+                let bestMove = { score: player === 2 ? -Infinity : Infinity, col: validCols[0] };
                 
                 for (const col of validCols) {
                     const row = getFirstEmptyRow(col);
                     board[row][col] = player;
                     
-                    const score = evaluateBoard();
-                    if (score > bestScore) {
-                        bestScore = score;
-                        bestCol = col;
-                    }
+                    const score = minimax(board, depth - 1, alpha, beta, player === 2 ? 1 : 2).score;
                     
                     board[row][col] = 0;
+                    
+                    if (player === 2) {
+                        if (score > bestMove.score) {
+                            bestMove.score = score;
+                            bestMove.col = col;
+                        }
+                        alpha = Math.max(alpha, bestMove.score);
+                    } else {
+                        if (score < bestMove.score) {
+                            bestMove.score = score;
+                            bestMove.col = col;
+                        }
+                        beta = Math.min(beta, bestMove.score);
+                    }
+                    
+                    if (beta <= alpha) {
+                        break;
+                    }
                 }
                 
-                return { col: bestCol, score: bestScore };
+                return bestMove;
+            }
+            
+            function evaluateBoard(board, player) {
+                let score = 0;
+                const opponent = player === 2 ? 1 : 2;
+                
+                // Center column preference
+                const centerCount = board.map(row => row[Math.floor(COLS / 2)]).filter(cell => cell === player).length;
+                score += centerCount * 10;
+                
+                // Check all possible windows
+                const directions = [
+                    [0, 1], [1, 0], [1, 1], [1, -1] // horizontal, vertical, diagonal, anti-diagonal
+                ];
+                
+                for (let row = 0; row < ROWS; row++) {
+                    for (let col = 0; col < COLS; col++) {
+                        for (const [dr, dc] of directions) {
+                            let window = [];
+                            for (let i = 0; i < 4; i++) {
+                                const r = row + i * dr;
+                                const c = col + i * dc;
+                                if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
+                                    window.push(board[r][c]);
+                                } else {
+                                    window = [];
+                                    break;
+                                }
+                            }
+                            if (window.length === 4) {
+                                score += evaluateWindow(window, player);
+                            }
+                        }
+                    }
+                }
+                
+                // Check for potential traps
+                score += evaluateTraps(board, player);
+                
+                return score;
+            }
+            
+            function evaluateWindow(window, player) {
+                const opponent = player === 2 ? 1 : 2;
+                let playerCount = window.filter(cell => cell === player).length;
+                let opponentCount = window.filter(cell => cell === opponent).length;
+                let emptyCount = window.filter(cell => cell === 0).length;
+                
+                if (playerCount === 4) return 100000;
+                if (opponentCount === 4) return -100000;
+                if (playerCount === 3 && emptyCount === 1) return 1000;
+                if (opponentCount === 3 && emptyCount === 1) return -900;
+                if (playerCount === 2 && emptyCount === 2) return 100;
+                if (opponentCount === 2 && emptyCount === 2) return -90;
+                if (playerCount === 1 && emptyCount === 3) return 10;
+                if (opponentCount === 1 && emptyCount === 3) return -9;
+                
+                return 0;
+            }
+            
+            function evaluateTraps(board, player) {
+                let score = 0;
+                const opponent = player === 2 ? 1 : 2;
+                
+                // Look for situations where opponent can be forced to lose
+                for (let col = 0; col < COLS; col++) {
+                    const row = getFirstEmptyRow(col);
+                    if (row !== -1) {
+                        let wins = 0;
+                        board[row][col] = player;
+                        for (let c = 0; c < COLS; c++) {
+                            const r = getFirstEmptyRow(c);
+                            if (r !== -1) {
+                                board[r][c] = opponent;
+                                if (checkWin(r, c, opponent)) {
+                                    wins++;
+                                }
+                                board[r][c] = 0;
+                            }
+                        }
+                        board[row][col] = 0;
+                        if (wins >= 2) {
+                            score += player === 2 ? 5000 : -5000;
+                        }
+                    }
+                }
+                
+                return score;
             }
             
             function getFirstEmptyRow(col) {
@@ -1165,17 +1107,13 @@
             }
             
             function updateUI() {
-                // Update turn indicator
                 turnIndicator.className = `w-5 h-5 rounded-full animate-pulse ${currentPlayer === 1 ? 'bg-blue-500' : 'bg-red-500'}`;
                 playerNameElem.textContent = playerNames[`player${currentPlayer}`];
                 playerNameElem.className = currentPlayer === 1 ? 'text-blue-400' : 'text-red-400';
-                
-                // Update stats display
                 player1WinsElem.textContent = stats.player1Wins;
                 player2WinsElem.textContent = stats.player2Wins;
                 drawsElem.textContent = stats.draws;
                 
-                // Show power-ups for human player
                 if (currentPlayer === 1 && aiDifficulty > 0) {
                     powerUpsContainer.classList.remove('hidden');
                 } else {
@@ -1188,7 +1126,6 @@
                 localStorage.setItem('connect4Stats', JSON.stringify(stats));
                 updateUI();
                 
-                // Update best time if this was a win
                 if (stat !== 'draws') {
                     const bestTimeKey = `bestTime_${aiDifficulty}`;
                     const bestTime = localStorage.getItem(bestTimeKey) || Infinity;
@@ -1233,7 +1170,6 @@
                     
                     document.body.appendChild(confetti);
                     
-                    // Remove after animation
                     setTimeout(() => {
                         confetti.remove();
                     }, 3000);
@@ -1251,7 +1187,6 @@
                 playSound(buttonSound);
                 powerUpsModal.classList.remove('hidden');
                 
-                // Add event listeners to power-up buttons
                 document.querySelectorAll('[data-power]').forEach(btn => {
                     btn.addEventListener('click', () => {
                         const power = btn.dataset.power;
@@ -1272,26 +1207,10 @@
                 playSound(powerUpSound);
                 
                 switch (power) {
-                    case 'double':
-                        // Allow player to make two moves
-                        activePowerUps.push('double');
-                        break;
-                        
                     case 'blast':
-                        // Clear a column
                         activePowerUps.push('blast');
                         break;
-                        
-                    case 'gravity':
-                        // Change gravity direction
-                        const directions = ['down', 'up', 'left', 'right'];
-                        const currentIndex = directions.indexOf(gravityDirection);
-                        gravityDirection = directions[(currentIndex + 1) % directions.length];
-                        alert(`Gravity changed to ${gravityDirection}!`);
-                        break;
-                        
                     case 'swap':
-                        // Swap positions with opponent
                         const temp = playerNames.player1;
                         playerNames.player1 = playerNames.player2;
                         playerNames.player2 = temp;
@@ -1299,7 +1218,6 @@
                         break;
                 }
                 
-                // Set cooldown
                 powerUpCooldown = true;
                 setTimeout(() => {
                     powerUpCooldown = false;
@@ -1307,7 +1225,6 @@
             }
             
             function useColumnBlast(col) {
-                // Clear the entire column
                 for (let row = 0; row < ROWS; row++) {
                     board[row][col] = 0;
                     const disc = document.querySelector(`.disc[data-row="${row}"][data-col="${col}"]`);
@@ -1317,7 +1234,6 @@
                     }
                 }
                 
-                // Show explosion effect
                 const cells = document.querySelectorAll(`.cell[data-col="${col}"]`);
                 cells.forEach(cell => {
                     cell.style.transform = 'scale(1.5)';
@@ -1328,7 +1244,6 @@
                     }, 500);
                 });
                 
-                // Switch turns
                 currentPlayer = currentPlayer === 1 ? 2 : 1;
                 updateUI();
             }
@@ -1370,18 +1285,8 @@
             }
             
             function applyColorTheme(theme) {
-                // Remove all theme classes
-                document.body.classList.remove('theme-default', 'theme-neon', 'theme-ocean', 'theme-sunset', 'theme-matrix');
-                
-                // Add the selected theme class
+                document.body.classList.remove('theme-default', 'theme-neon', 'theme-ocean', 'theme-sunset', 'theme-cosmic');
                 document.body.classList.add(`theme-${theme}`);
-                
-                // Special effects for matrix theme
-                if (theme === 'matrix') {
-                    createMatrixCode();
-                } else {
-                    clearMatrixCode();
-                }
             }
             
             function playSound(sound) {
@@ -1393,8 +1298,7 @@
             }
             
             function loadSettings() {
-                // Load dark mode
-                darkMode = localStorage.getItem('darkMode') !== 'false'; // Default to true
+                darkMode = localStorage.getItem('darkMode') !== 'false';
                 if (darkMode) {
                     document.body.classList.add('bg-gray-900');
                     document.body.classList.add('text-white');
@@ -1409,33 +1313,28 @@
                     themeToggle.querySelector('span').textContent = 'Dark Mode';
                 }
                 
-                // Load volume
                 const savedVolume = localStorage.getItem('soundVolume');
                 if (savedVolume) {
                     soundVolume = parseFloat(savedVolume);
                     volumeSlider.value = soundVolume * 100;
                 }
                 
-                // Load AI difficulty
                 const savedDifficulty = localStorage.getItem('aiDifficulty');
                 if (savedDifficulty) {
                     aiDifficulty = parseInt(savedDifficulty);
                     difficultySelect.value = aiDifficulty;
                 }
                 
-                // Load player names
                 const savedNames = localStorage.getItem('playerNames');
                 if (savedNames) {
                     playerNames = JSON.parse(savedNames);
                 }
                 
-                // Load stats
                 const savedStats = localStorage.getItem('connect4Stats');
                 if (savedStats) {
                     stats = JSON.parse(savedStats);
                 }
                 
-                // Load theme
                 const savedTheme = localStorage.getItem('colorTheme');
                 if (savedTheme) {
                     currentTheme = savedTheme;
